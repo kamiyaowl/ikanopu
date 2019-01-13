@@ -60,7 +60,7 @@ namespace ikanopu.Core {
                 BaseX = 1450,
                 AlphaY = 140,
                 BravoY = 515,
-                WatcherY = 910,
+                WatcherY = 900,
             };
         #endregion
 
@@ -81,8 +81,8 @@ namespace ikanopu.Core {
                 }
                 // watcher
                 if (WatcherY.HasValue) {
-                    yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 0 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
-                    yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 1 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
+                    yield return (Team.Watcher, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 0 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
+                    yield return (Team.Watcher, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 1 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
             }
         }

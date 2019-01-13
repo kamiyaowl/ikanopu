@@ -169,7 +169,8 @@ namespace ikanopu {
                                 InvalidMessage = invalidMessage,
                                 CropMats = cropMats,
                                 PostMats = postMats,
-                                RecognizedUsers = recognizedUsers
+                                RecognizedUsers = recognizedUsers,
+                                CropPosition = cropPosition,
                             };
                             #endregion
                         })
@@ -177,10 +178,11 @@ namespace ikanopu {
                         .ToArray();
 
                         // いい方を使ってあげる
-                        var result =
-                            results.Where(x => !x.IsInvalid && x.RecognizedUsers.Length > 0)
-                                   .OrderByDescending(x => x.RecognizedUsers)
-                                   .FirstOrDefault();
+                        var result = results[1];
+                        //var result =
+                        //    results.Where(x => !x.IsInvalid && x.RecognizedUsers.Length > 0)
+                        //           .OrderByDescending(x => x.RecognizedUsers)
+                        //           .FirstOrDefault();
 
                         if (result != null) {
                             // デバッグ用に画像の保存
@@ -195,7 +197,7 @@ namespace ikanopu {
                                 #endregion
                             }
                             // プレビュー画像に書き込み
-                            captureMat.DrawCropPreview(cropPositions[0], result.RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
+                            captureMat.DrawCropPreview(result.CropPosition, result.RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
                         }
                         win.ShowImage(captureMat);
 

@@ -1,4 +1,5 @@
 ﻿using ikanopu.Core;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +39,7 @@ namespace ikanopu.Config {
         /// <summary>
         /// 切り出す名前の座標設定
         /// </summary>
+        [JsonIgnore] //TEST
         public CropOption[] CropOptions { get; set; } = new[] {
             CropOption.Generate(),
             CropOption.GenerateWithWatcher(),
