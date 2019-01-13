@@ -52,6 +52,7 @@ namespace ikanopu {
                             #region 画像処理するところ
 
                             var isInvalid = false;
+                            var invalidMessage = "";
 
                             #region 前処理: 名前ごとに分解
                             var cropMats = captureMat.CropNames(cropPosition).ToArray();
@@ -153,18 +154,23 @@ namespace ikanopu {
 
                             #region 評価しておく
                             if (recognizedUsers.Length == 0) {
-                                Console.WriteLine("名前を認識できませんでした");
+                                invalidMessage = "名前を認識できませんでした";
                                 isInvalid = true;
                             }
                             if (recognizedUsers.Select(x => x.Index).Distinct().Count() != recognizedUsers.Length) {
-                                Console.WriteLine("複数プレイヤが同じ箇所を誤って認識している可能性があります。");
+                                invalidMessage = "複数プレイヤが同じ箇所を誤って認識している可能性があります。";
                                 isInvalid = true;
                             }
-
-                            // cropOptionが複数あるのでとりあえず後で使うデータは返しておく
-                            return new { IsInvalid = isInvalid, CropMats = cropMats, PostMats = postMats, RecognizedUsers = recognizedUsers };
                             #endregion
 
+                            // cropOptionが複数あるのでとりあえず後で使うデータは返しておく
+                            return new {
+                                IsInvalid = isInvalid,
+                                InvalidMessage = invalidMessage,
+                                CropMats = cropMats,
+                                PostMats = postMats,
+                                RecognizedUsers = recognizedUsers
+                            };
                             #endregion
                         })
                         .Where(x => x != null)
