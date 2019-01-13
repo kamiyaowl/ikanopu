@@ -17,7 +17,14 @@ namespace ikanopu.Core {
         /// <param name="mat"></param>
         /// <param name="src"></param>
         public static void DrawCropPreview(this Mat mat, IEnumerable<(CropOption.Team, Rect)> src, IEnumerable<(int, string)> recognized) {
-            var recs = recognized.ToDictionary(x => x.Item1, x => x.Item2);
+            // デバッグ中に同一キー確認で落ちるのが煩わしい
+            Dictionary<int, string> recs;
+            try {
+                recs = recognized.ToDictionary(x => x.Item1, x => x.Item2);
+            } catch (Exception ex) {
+                Console.WriteLine(ex);
+                return;
+            }
 
             int i = 0;
             foreach (var (team, rect) in src) {

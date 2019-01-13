@@ -136,8 +136,8 @@ namespace ikanopu {
                                         datas.Select((x, i) => new { Index = i, Value = x })
                                              .Where(x => x.Value.Matches.Length > 0)
                                              .ToArray();
-                                    var sum = datas.Sum(x => x.Score);
-                                    var average = sum / (double)datas.Length;
+                                    var sum = src.Sum(x => x.Value.Score);
+                                    var average = sum / (double)src.Length;
                                     var sigma = Math.Sqrt(src.Sum(x => Math.Pow(x.Value.Score - average, 2)) / src.Length);
                                     var threash = average - sigma * config.RecognizeSigmaRatio; // 一応sigmaユーザーが指定できる
                                     // threashを下回ったもののみ抽出

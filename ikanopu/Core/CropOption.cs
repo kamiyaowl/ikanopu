@@ -58,9 +58,9 @@ namespace ikanopu.Core {
                 BoxHeight = 50,
                 MarginHeight = 75,
                 BaseX = 1450,
-                AlphaY = 140,
+                AlphaY = 142,
                 BravoY = 515,
-                WatcherY = 900,
+                WatcherY = 905,
             };
         #endregion
 
