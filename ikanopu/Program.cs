@@ -30,11 +30,13 @@ namespace ikanopu {
                 var mat = new Mat(config.CaptureHeight, config.CaptureWidth, MatType.CV_8UC3);
                 while (Cv2.WaitKey(1) == -1) { // TODO: shutdownほうほうはもっとまともに
                     capture.Read(mat);
-                    // 
+                    //TODO: 設定された領域を両方解析して、精度の高い方を使う。もしくはマッチしなかったという結果を返す
+
+                    // 名前ごとに分解して前処理してあげる
                     var cropMats = mat.CropNames(cropPositions[0]).ToArray();
                     var teams = cropMats.Select(x => x.Item1).ToArray();
                     var postMats = cropMats.RemoveBackground().ToArray();
-
+                    // 保存されてるやつとテンプレートマッチングする
                     if (config.IsSaveDebugImage) {
                         cropMats.Select(x => x.Item2).SaveAll("origin");
                         postMats.Select(x => x.Item2).SaveAll("post");

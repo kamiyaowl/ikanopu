@@ -30,5 +30,13 @@ namespace ikanopu.Config {
             CropOption.Generate(),
             CropOption.GenerateWithWatcher(),
             };
+        /// <summary>
+        /// 登録した画像のデフォルト保存先
+        /// </summary>
+        public string RegisterImageDirectory { get; set; } = "regiters";
+        /// <summary>
+        /// テンプレートマッチ登録者一覧
+        /// </summary>
+        public RegisterUser[] RegisterUsers { get; set; } = new RegisterUser[] { };
     }
 }
