@@ -31,7 +31,13 @@ namespace ikanopu.Config {
         /// <summary>
         /// Average - XXX*sigmaを下回ったら正しい画像だと判定するか
         /// </summary>
-        public double RecognizeSigmaRatio { get; set; } = 1.2;
+        public double RecognizeSigmaRatio { get; set; } = 0.8;
+        /// <summary>
+        /// 特徴量の近い値が複数あったときに、
+        /// true: 破棄せず一番良いものを採用
+        /// false: 破棄
+        /// </summary>
+        public bool IsPrioritizeDetect { get; set; } = true;
         /// <summary>
         /// デバッグ用に画像を保存するか
         /// </summary>
@@ -39,7 +45,7 @@ namespace ikanopu.Config {
         /// <summary>
         /// 切り出す名前の座標設定
         /// </summary>
-        [JsonIgnore] //TEST
+        [JsonIgnore] //TODO:TEST
         public CropOption[] CropOptions { get; set; } = new[] {
             CropOption.Generate(),
             CropOption.GenerateWithWatcher(),

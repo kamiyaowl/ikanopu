@@ -94,7 +94,7 @@ namespace ikanopu.Core {
         /// <summary>
         /// いくつも作るな
         /// </summary>
-        static BRISK computeEngine = null;
+        static Feature2D computeEngine = null;
         /// <summary>
         /// 特徴量を計算
         /// </summary>

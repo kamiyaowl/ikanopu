@@ -97,19 +97,19 @@ namespace ikanopu {
 
                             #region for Debug: マッチの結果を全部画像に出力に書く
                             // デバッグ 
-                            //foreach (var (user, datas) in matchResults) {
-                            //    var imgs =
-                            //        datas.Select(data => {
-                            //            Mat img = new Mat();
-                            //            Cv2.DrawMatches(user.PreLoadImage, user.ComputeKeyPoints, data.Image, data.KeyPoints, data.Matches, img);
-                            //            return img;
-                            //        });
-                            //    var names = datas.Select((data, i) => $"{user.DisplayName}[{i}], {data.Score}");
-                            //    foreach (var n in names) {
-                            //        Console.WriteLine(n);
-                            //    }
-                            //    //Window.ShowImages(imgs, names);
-                            //}
+                            foreach (var (user, datas) in matchResults) {
+                                var imgs =
+                                    datas.Select(data => {
+                                        Mat img = new Mat();
+                                        Cv2.DrawMatches(user.PreLoadImage, user.ComputeKeyPoints, data.Image, data.KeyPoints, data.Matches, img);
+                                        return img;
+                                    });
+                                var names = datas.Select((data, i) => $"{user.DisplayName}[{i}], {data.Score}");
+                                foreach (var n in names) {
+                                    Console.WriteLine(n);
+                                }
+                                //Window.ShowImages(imgs, names);
+                            }
                             #endregion
 
                             #region 一致するユーザを判定
@@ -141,8 +141,14 @@ namespace ikanopu {
                                     var sigma = Math.Sqrt(src.Sum(x => Math.Pow(x.Value.Score - average, 2)) / src.Length);
                                     var threash = average - sigma * config.RecognizeSigmaRatio; // 一応sigmaユーザーが指定できる
                                     // threashを下回ったもののみ抽出
-                                    var detects = src.Where(x => x.Value.Score < threash).ToArray();
-                                    if (detects.Length == 0 || detects.Length > 1) return null; // ないか、複数出てくる場合は検出失敗
+                                    var detects =
+                                        src.Where(x => x.Value.Score < threash)
+                                           .OrderBy(x => x.Value.Score)
+                                           .ToArray();
+                                    //検出できなかった
+                                    if (detects.Length == 0) return null;
+                                    // 複数ある場合
+                                    if (detects.Length > 1 && !config.IsPrioritizeDetect) return null;
                                     // こいつが正解
                                     var detect = detects.First();
                                     // 完了
