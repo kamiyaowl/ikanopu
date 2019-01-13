@@ -39,10 +39,6 @@ namespace ikanopu.Core {
         /// 観戦者1人目のY座標、nullの場合観戦者なし
         /// </summary>
         public int? WatcherY { get; set; }
-        /// <summary>
-        /// 参加プレイヤー数
-        /// </summary>
-        public int PlayerCount { get; set; }
 
         #region Preset Generate
         public static CropOption Generate() =>
@@ -54,7 +50,6 @@ namespace ikanopu.Core {
                 AlphaY = 240,
                 BravoY = 615,
                 WatcherY = null,
-                PlayerCount = 8,
             };
 
         public static CropOption GenerateWithWatcher() =>
@@ -66,7 +61,6 @@ namespace ikanopu.Core {
                 AlphaY = 140,
                 BravoY = 515,
                 WatcherY = 910,
-                PlayerCount = 10,
             };
         #endregion
 
@@ -86,7 +80,7 @@ namespace ikanopu.Core {
                     yield return (Team.Bravo, new Rect(BaseX - BoxWidth / 2, BravoY + i * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
                 // watcher
-                if (PlayerCount > 8 && WatcherY.HasValue) {
+                if (WatcherY.HasValue) {
                     yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 0 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                     yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 1 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
