@@ -16,7 +16,13 @@ namespace ikanopu {
         public static readonly string SECRET_PATH = "secret.json";
 
         [STAThread]
-        static void Main(string[] args) {
+        static async Task Main(string[] args) {
+            await Task.Run(() => {
+                ProcessImage();
+            });
+        }
+
+        private static void ProcessImage() {
             // 設定読み込み
             using (var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig()) {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
@@ -218,6 +224,5 @@ namespace ikanopu {
                 File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
             }
         }
-
     }
 }
