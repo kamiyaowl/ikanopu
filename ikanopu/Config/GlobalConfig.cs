@@ -14,9 +14,9 @@ namespace ikanopu.Config {
         /// <summary>
         /// Captureループの待ち時間
         /// </summary>
-        public int CaptureDelayMs { get; set; } = 10;
+        public int CaptureDelayMs { get; set; } = 1;
         /// <summary>
-        /// キャプチャ終了時のキー、27はESCAPE
+        /// キャプチャ終了時のキー(ASCII)、27はESCAPE
         /// </summary>
         public int CaptureBreakKey { get; set; } = 27;
         /// <summary>

@@ -68,7 +68,7 @@ namespace ikanopu.Core {
             double threash = 200,
             double max = 255) {
             foreach (var (t, m) in src) {
-                using (var cvt = m.CvtColor(ColorConversionCodes.RGB2GRAY)) { 
+                using (var cvt = m.CvtColor(ColorConversionCodes.RGB2GRAY)) {
                     // TODO:もしかしたらeroson->dilationする必要があるかも
 
                     var dst = cvt.Threshold(threash, max, ThresholdTypes.BinaryInv);
@@ -76,6 +76,11 @@ namespace ikanopu.Core {
                 }
             }
         }
+
+        /// <summary>
+        /// いくつも作るな
+        /// </summary>
+        static BRISK computeEngine = null;
         /// <summary>
         /// 特徴量を計算
         /// </summary>
@@ -83,8 +88,10 @@ namespace ikanopu.Core {
         /// <param name="keyPoint"></param>
         /// <param name="descriptor"></param>
         public static void Compute(this Mat mat, out KeyPoint[] keyPoint, Mat descriptor) {
-            var engine = BRISK.Create();
-            engine.DetectAndCompute(mat, null, out keyPoint, descriptor);
+            if (computeEngine == null) {
+                computeEngine = BRISK.Create();
+            }
+            computeEngine.DetectAndCompute(mat, null, out keyPoint, descriptor);
         }
 
 

@@ -85,7 +85,7 @@ namespace ikanopu {
                             foreach (var n in names) {
                                 Console.WriteLine(n);
                             }
-                            Window.ShowImages(imgs, names);
+                            //Window.ShowImages(imgs, names);
                         }
 
                         // 不一致条件
