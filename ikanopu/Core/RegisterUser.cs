@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Newtonsoft.Json;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,7 @@ namespace ikanopu.Core {
         /// <summary>
         /// 画像を読み込んで返します。パス先にないとnullが帰るからちゃんとしてね
         /// </summary>
+        [JsonIgnore]
         public Mat Image {
             get => File.Exists(ImagePath) ? new Mat(ImagePath) : null;
         }
@@ -25,6 +27,16 @@ namespace ikanopu.Core {
         /// <param name="basePath"></param>
         /// <param name="postMat"></param>
         public RegisterUser(string basePath, Mat postMat) {
+            string path = GeneratePath(basePath);
+            postMat.SaveImage(path);
+            ImagePath = path;
+        }
+        /// <summary>
+        /// ファイルの保存先を適当につけてくれます
+        /// </summary>
+        /// <param name="basePath"></param>
+        /// <returns></returns>
+        private static string GeneratePath(string basePath) {
             if (!Directory.Exists(basePath)) {
                 Directory.CreateDirectory(basePath);
             }
@@ -32,7 +44,7 @@ namespace ikanopu.Core {
             do {
                 path = Path.Combine(basePath, $"{(new Random()).Next()}.bmp");
             } while (File.Exists(path));
-
+            return path;
         }
     }
 }

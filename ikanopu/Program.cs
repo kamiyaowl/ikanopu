@@ -45,6 +45,11 @@ namespace ikanopu {
                     if (config.IsSaveDebugImage) {
                         cropMats.Select(x => x.Item2).SaveAll("origin");
                         postMats.Select(x => x.Item2).SaveAll("post");
+
+                        // test
+                        //config.RegisterUsers.Add(new RegisterUser(config.RegisterImageDirectory, postMats[1].Item2) { DisplayName = "ふみふみ" });
+                        //config.RegisterUsers.Add(new RegisterUser(config.RegisterImageDirectory, postMats[3].Item2) { DisplayName = "あのさん" });
+                        //config.RegisterUsers.Add(new RegisterUser(config.RegisterImageDirectory, postMats[5].Item2) { DisplayName = "ゆきだるまテレビ" });
                     }
                     mat.DrawCropPreview(cropPositions[0]);
                     win.ShowImage(mat);

@@ -37,7 +37,7 @@ namespace ikanopu.Config {
         /// <summary>
         /// テンプレートマッチ登録者一覧
         /// </summary>
-        public RegisterUser[] RegisterUsers { get; set; } = new RegisterUser[] { };
+        public List<RegisterUser> RegisterUsers { get; set; } = new List<RegisterUser>();
         /// <summary>
         /// 最終更新日
         /// </summary>
