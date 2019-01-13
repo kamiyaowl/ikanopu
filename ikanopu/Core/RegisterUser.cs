@@ -8,11 +8,28 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Core {
-    class RegisterUser {
+    class RegisterUser : IDisposable {
         //TODO: discord周りの設定も追加
         public string DisplayName { get; set; }
         public string ImagePath { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        #region 毎回Matロードしてたら遅い
+        private Mat _preloadImage = null;
+
+        /// <summary>
+        /// 読み込み済みの画像
+        /// </summary>
+        [JsonIgnore]
+        public Mat PreLoadImage {
+            get {
+                if (_preloadImage == null) {
+                    _preloadImage = Image;
+                }
+                return _preloadImage;
+            }
+        }
+        #endregion
 
         /// <summary>
         /// 画像を読み込んで返します。パス先にないとnullが帰るからちゃんとしてね
@@ -21,6 +38,12 @@ namespace ikanopu.Core {
         public Mat Image {
             get => File.Exists(ImagePath) ? new Mat(ImagePath) : null;
         }
+
+        /// <summary>
+        /// Json復元のためには仕方なかったんや
+        /// </summary>
+        public RegisterUser() { }
+
         /// <summary>
         /// 指定された画像を保存してからインスタンスを生成します
         /// </summary>
@@ -46,5 +69,24 @@ namespace ikanopu.Core {
             } while (File.Exists(path));
             return path;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                if (disposing) {
+                    if (_preloadImage != null) {
+                        _preloadImage.Dispose();
+                        _preloadImage = null;
+                    }
+                }
+                disposedValue = true;
+            }
+        }
+        public void Dispose() {
+            Dispose(true);
+        }
+        #endregion
     }
 }

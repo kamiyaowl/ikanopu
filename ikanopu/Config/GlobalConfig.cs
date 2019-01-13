@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Config {
-    class GlobalConfig {
+    class GlobalConfig : IDisposable {
         /// <summary>
         /// キャプチャデバイスのインデックス
         /// </summary>
@@ -42,5 +42,26 @@ namespace ikanopu.Config {
         /// 最終更新日
         /// </summary>
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                if (disposing) {
+                    if (RegisterUsers != null) {
+                        foreach (var r in RegisterUsers) {
+                            r.Dispose();
+                        }
+                        RegisterUsers = null;
+                    }
+                }
+                disposedValue = true;
+            }
+        }
+        public void Dispose() {
+            Dispose(true);
+        }
+        #endregion
     }
 }

@@ -66,7 +66,7 @@ namespace ikanopu.Core {
                 AlphaY = 140,
                 BravoY = 515,
                 WatcherY = 910,
-                PlayerCount = 8,
+                PlayerCount = 10,
             };
         #endregion
 
