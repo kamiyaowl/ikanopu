@@ -28,6 +28,10 @@ namespace ikanopu.Config {
         /// </summary>
         public int CaptureHeight { get; set; } = 1080;
         /// <summary>
+        /// Average - XXX*sigmaを下回ったら正しい画像だと判定するか
+        /// </summary>
+        public double RecognizeSigmaRatio { get; set; } = 1.2;
+        /// <summary>
         /// デバッグ用に画像を保存するか
         /// </summary>
         public bool IsSaveDebugImage { get; set; } = true;

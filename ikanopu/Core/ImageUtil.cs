@@ -16,7 +16,10 @@ namespace ikanopu.Core {
         /// </summary>
         /// <param name="mat"></param>
         /// <param name="src"></param>
-        public static void DrawCropPreview(this Mat mat, IEnumerable<(CropOption.Team, Rect)> src) {
+        public static void DrawCropPreview(this Mat mat, IEnumerable<(CropOption.Team, Rect)> src, IEnumerable<(int, string)> recognized) {
+            var recs = recognized.ToDictionary(x => x.Item1, x => x.Item2);
+
+            int i = 0;
             foreach (var (team, rect) in src) {
                 Scalar color;
                 switch (team) {
@@ -33,6 +36,10 @@ namespace ikanopu.Core {
                         throw new NotImplementedException();
                 }
                 mat.Rectangle(rect, color);
+                if (recs.ContainsKey(i)) {
+                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 1.0, Scalar.White, 2, LineTypes.AntiAlias, false);
+                }
+                i++;
             }
         }
         /// <summary>
