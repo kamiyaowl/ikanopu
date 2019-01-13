@@ -60,6 +60,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\GlobalConfig.cs" />
+    <Compile Include="Config\SecretConfig.cs" />
     <Compile Include="Core\CropOption.cs" />
     <Compile Include="Core\ImageUtil.cs" />
     <Compile Include="Program.cs" />
