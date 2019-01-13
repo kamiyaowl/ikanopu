@@ -38,5 +38,9 @@ namespace ikanopu.Config {
         /// テンプレートマッチ登録者一覧
         /// </summary>
         public RegisterUser[] RegisterUsers { get; set; } = new RegisterUser[] { };
+        /// <summary>
+        /// 最終更新日
+        /// </summary>
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
     }
 }

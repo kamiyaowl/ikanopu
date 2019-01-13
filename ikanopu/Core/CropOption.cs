@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Newtonsoft.Json;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,6 +74,7 @@ namespace ikanopu.Core {
         /// Optionの内容から名前クリップする座標を一式返します
         /// </summary>
         /// <returns></returns>
+        [JsonIgnore]
         public IEnumerable<(Team t, Rect r)> CropPosition {
             get {
                 // alpha

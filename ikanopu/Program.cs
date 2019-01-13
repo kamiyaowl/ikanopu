@@ -1,20 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ikanopu.Config;
 using ikanopu.Core;
+using Newtonsoft.Json;
 using OpenCvSharp;
 
 namespace ikanopu {
     class Program {
+        public static readonly string CONFIG_PATH = "config.json";
+        public static readonly string SECRET_PATH = "secret.json";
+
         [STAThread]
         static void Main(string[] args) {
-            // TODO: 設定ファイルからのロード
-            var config = new GlobalConfig();
-            var secret = new SecretConfig();
+            // 設定読み込み
+            var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig();
+            var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
             // 毎回計算するのも面倒なので、座標は確定しておく
             var cropPositions =
@@ -45,6 +50,12 @@ namespace ikanopu {
                     win.ShowImage(mat);
                 }
             }
+
+            // 終了時にコンフィグを書き直してあげる（バージョンが変わっていたときなど、あるじゃん)
+            config.UpdatedAt = DateTime.Now;
+            secret.UpdatedAt = DateTime.Now;
+            File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
+            File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
         }
 
 
