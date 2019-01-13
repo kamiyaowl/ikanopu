@@ -184,11 +184,11 @@ namespace ikanopu {
                         .ToArray();
 
                         // いい方を使ってあげる
-                        var result = results[1];
-                        //var result =
-                        //    results.Where(x => !x.IsInvalid && x.RecognizedUsers.Length > 0)
-                        //           .OrderByDescending(x => x.RecognizedUsers)
-                        //           .FirstOrDefault();
+                        //var result = results[1];
+                        var result =
+                            results.Where(x => !x.IsInvalid && x.RecognizedUsers.Length > 0)
+                                   .OrderByDescending(x => x.RecognizedUsers?.Length ?? 0)
+                                   .FirstOrDefault();
 
                         if (result != null) {
                             // デバッグ用に画像の保存
