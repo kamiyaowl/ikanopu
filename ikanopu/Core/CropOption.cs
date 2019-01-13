@@ -47,10 +47,10 @@ namespace ikanopu.Core {
         public static CropOption Generate() =>
             new CropOption() {
                 BoxWidth = 400,
-                BoxHeight = 60,
-                MarginHeight = 80,
-                BaseX = 1420,
-                AlphaY = 235,
+                BoxHeight = 50,
+                MarginHeight = 75,
+                BaseX = 1450,
+                AlphaY = 240,
                 BravoY = 615,
                 WatcherY = null,
                 PlayerCount = 8,
@@ -59,13 +59,13 @@ namespace ikanopu.Core {
         public static CropOption GenerateWithWatcher() =>
             new CropOption() {
                 BoxWidth = 400,
-                BoxHeight = 60,
-                MarginHeight = 80,
-                BaseX = 1420,
-                AlphaY = 135,
+                BoxHeight = 50,
+                MarginHeight = 75,
+                BaseX = 1450,
+                AlphaY = 140,
                 BravoY = 515,
                 WatcherY = 910,
-                PlayerCount = 9,
+                PlayerCount = 8,
             };
         #endregion
 
@@ -77,16 +77,16 @@ namespace ikanopu.Core {
             get {
                 // alpha
                 for (int i = 0; i < 4; ++i) {
-                    yield return (Team.Alpha, new Rect(BaseX, AlphaY + i * MarginHeight, BoxWidth, MarginHeight));
+                    yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, AlphaY + i * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
                 // bravo
                 for (int i = 0; i < 4; ++i) {
-                    yield return (Team.Bravo, new Rect(BaseX, BravoY + i * MarginHeight, BoxWidth, BoxHeight));
+                    yield return (Team.Bravo, new Rect(BaseX - BoxWidth / 2, BravoY + i * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
                 // watcher
                 if (PlayerCount > 8 && WatcherY.HasValue) {
-                    yield return (Team.Watcher, new Rect(BaseX, WatcherY.Value, BoxWidth, BoxHeight));
-                    yield return (Team.Watcher, new Rect(BaseX, WatcherY.Value + MarginHeight, BoxWidth, BoxHeight));
+                    yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 0 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
+                    yield return (Team.Alpha, new Rect(BaseX - BoxWidth / 2, WatcherY.Value + 1 * MarginHeight - BoxHeight / 2, BoxWidth, BoxHeight));
                 }
             }
         }
