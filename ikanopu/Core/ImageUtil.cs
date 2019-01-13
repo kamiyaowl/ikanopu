@@ -56,5 +56,25 @@ namespace ikanopu.Core {
                 yield return (team, mat.Clone(rect));
             }
         }
+        /// <summary>
+        /// インクっぽい背景を消して名前だけにします
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="threash"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static IEnumerable<(CropOption.Team, Mat)> RemoveBackground(
+            this IEnumerable<(CropOption.Team, Mat)> src,
+            double threash = 200,
+            double max = 255) {
+            foreach (var (t, m) in src) {
+                using (var cvt = m.CvtColor(ColorConversionCodes.RGB2GRAY)) { 
+                    // TODO:もしかしたらeroson->dilationする必要があるかも
+
+                    var dst = cvt.Threshold(threash, max, ThresholdTypes.Binary);
+                    yield return (t, dst);
+                }
+            }
+        }
     }
 }

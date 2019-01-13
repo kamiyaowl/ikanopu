@@ -33,14 +33,11 @@ namespace ikanopu {
                     // 
                     var cropMats = mat.CropNames(cropPositions[0]).ToArray();
                     var teams = cropMats.Select(x => x.Item1).ToArray();
-                    var postMats =
-                        cropMats.Select(x => x.Item2.CvtColor(ColorConversionCodes.RGB2GRAY))
-                                .Select(x => x.Threshold(200, 255, ThresholdTypes.Binary))
-                                .ToArray();
+                    var postMats = cropMats.RemoveBackground().ToArray();
 
                     if (config.IsSaveDebugImage) {
                         cropMats.Select(x => x.Item2).SaveAll("origin");
-                        postMats.SaveAll("post");
+                        postMats.Select(x => x.Item2).SaveAll("post");
                     }
                     mat.DrawCropPreview(cropPositions[0]);
                     win.ShowImage(mat);
