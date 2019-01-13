@@ -71,7 +71,7 @@ namespace ikanopu.Core {
                 using (var cvt = m.CvtColor(ColorConversionCodes.RGB2GRAY)) { 
                     // TODO:もしかしたらeroson->dilationする必要があるかも
 
-                    var dst = cvt.Threshold(threash, max, ThresholdTypes.Binary);
+                    var dst = cvt.Threshold(threash, max, ThresholdTypes.BinaryInv);
                     yield return (t, dst);
                 }
             }

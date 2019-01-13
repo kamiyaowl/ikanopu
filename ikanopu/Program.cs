@@ -27,21 +27,65 @@ namespace ikanopu {
                           .Select(x => x.CropPosition.ToArray())
                           .ToArray();
                 // 画像処理メインらへん
-                using (var capture = new VideoCapture(CaptureDevice.Any, config.CameraIndex)) {
-                    capture.FrameWidth = config.CaptureWidth;
-                    capture.FrameHeight = config.CaptureHeight;
+                using (var capture = new VideoCapture(CaptureDevice.Any, config.CameraIndex) {
+                    FrameWidth = config.CaptureWidth,
+                    FrameHeight = config.CaptureHeight,
+                }) {
+                    // 前準備
                     var win = new Window("capture raw");
-
-                    var mat = new Mat(config.CaptureHeight, config.CaptureWidth, MatType.CV_8UC3);
-                    while (Cv2.WaitKey(1) == -1) { // TODO: shutdownほうほうはもっとまともに
-                        capture.Read(mat);
+                    var captureMat = new Mat(config.CaptureHeight, config.CaptureWidth, MatType.CV_8UC3);
+                    var matcher = new BFMatcher();
+                    // ループとか
+                    while (Cv2.WaitKey(config.CaptureDelayMs) != config.CaptureBreakKey) {
+                        capture.Read(captureMat);
                         //TODO: 設定された領域を両方解析して、精度の高い方を使う。もしくはマッチしなかったという結果を返す
 
                         // 名前ごとに分解して前処理してあげる
-                        var cropMats = mat.CropNames(cropPositions[0]).ToArray();
+                        var cropMats = captureMat.CropNames(cropPositions[0]).ToArray();
                         var teams = cropMats.Select(x => x.Item1).ToArray();
                         var postMats = cropMats.RemoveBackground().ToArray();
+                        // 抽出した画像の特徴量を計算
+                        var computeDatas = postMats.Select(m => {
+                            var engine = BRISK.Create();
+                            var descriptor = new Mat();
+                            engine.DetectAndCompute(m.Item2, null, out var kp, descriptor);
+                            return new {
+                                KeyPoints = kp,
+                                Descriptor = descriptor,
+                                Image = m.Item2,
+                            };
+                        }).ToArray();
                         // 保存されてるやつとテンプレートマッチングする
+                        var matchResults =
+                            config.RegisterUsers
+                                  .Select(user => {
+                                      var (kp, d) = user.ComputeData;
+                                      return (user, computeDatas.Select(data => {
+                                          var matches = matcher.Match(d, data.Descriptor).ToArray();
+                                          // 同じ場所切り取ってるしdistanceの総和でも見とけばいいでしょ TODO: #ちゃんと検証しろ
+                                          var score = matches.Sum(m => m.Distance);
+                                          return new {
+                                              Image = data.Image,
+                                              KeyPoints = data.KeyPoints,
+                                              Matches = matches,
+                                              Score = score,
+                                          };
+                                      }));
+                                  }).ToArray();
+                        // デバッグ マッチの結果を全部書く
+                        foreach (var (user, datas) in matchResults) {
+                            var imgs =
+                                datas.Select(data => {
+                                    Mat img = new Mat();
+                                    Cv2.DrawMatches(user.PreLoadImage, user.ComputeData.Item1, data.Image, data.KeyPoints, data.Matches, img);
+                                    return img;
+                                });
+                            var names = datas.Select((data, i) => $"{user.DisplayName}-[{i}] : {data.Score}");
+                            Window.ShowImages(imgs, names);
+                        }
+
+
+                        // デバッグ用に画像の保存
                         if (config.IsSaveDebugImage) {
                             cropMats.Select(x => x.Item2).SaveAll("origin");
                             postMats.Select(x => x.Item2).SaveAll("post");
@@ -51,8 +95,8 @@ namespace ikanopu {
                             //config.RegisterUsers.Add(new RegisterUser(config.RegisterImageDirectory, postMats[3].Item2) { DisplayName = "あのさん" });
                             //config.RegisterUsers.Add(new RegisterUser(config.RegisterImageDirectory, postMats[5].Item2) { DisplayName = "ゆきだるまテレビ" });
                         }
-                        mat.DrawCropPreview(cropPositions[0]);
-                        win.ShowImage(mat);
+                        captureMat.DrawCropPreview(cropPositions[0]);
+                        win.ShowImage(captureMat);
                     }
                 }
 

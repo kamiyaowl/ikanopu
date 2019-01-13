@@ -14,8 +14,10 @@ namespace ikanopu.Core {
         public string ImagePath { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        #region 毎回Matロードしてたら遅い
+        #region 画像処理周り、永続化する必要はなし
         private Mat _preloadImage = null;
+        private KeyPoint[] _keyPoints = null;
+        private Mat _descriptor = null;
 
         /// <summary>
         /// 読み込み済みの画像
@@ -29,16 +31,34 @@ namespace ikanopu.Core {
                 return _preloadImage;
             }
         }
-        #endregion
+        /// <summary>
+        /// AKAZE特徴量を返します
+        /// </summary>
+        [JsonIgnore]
+        public (KeyPoint[], Mat) ComputeData {
+            get {
+                if (_keyPoints == null || _descriptor == null) {
+                    var engine = BRISK.Create();
+                    _descriptor = new Mat();
+                    _keyPoints = engine.Detect(PreLoadImage);
+
+                    engine.DetectAndCompute(PreLoadImage, null, out _keyPoints, _descriptor);
+                }
+                return (_keyPoints, _descriptor);
+
+            }
+        }
+
 
         /// <summary>
         /// 画像を読み込んで返します。パス先にないとnullが帰るからちゃんとしてね
         /// </summary>
         [JsonIgnore]
         public Mat Image {
-            get => File.Exists(ImagePath) ? new Mat(ImagePath) : null;
+            get => File.Exists(ImagePath) ? new Mat(ImagePath, ImreadModes.Grayscale) : null;
         }
 
+        #endregion
         /// <summary>
         /// Json復元のためには仕方なかったんや
         /// </summary>

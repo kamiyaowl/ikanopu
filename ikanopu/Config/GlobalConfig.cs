@@ -12,6 +12,14 @@ namespace ikanopu.Config {
         /// </summary>
         public int CameraIndex { get; set; } = 0;
         /// <summary>
+        /// Captureループの待ち時間
+        /// </summary>
+        public int CaptureDelayMs { get; set; } = 10;
+        /// <summary>
+        /// キャプチャ終了時のキー、27はESCAPE
+        /// </summary>
+        public int CaptureBreakKey { get; set; } = 27;
+        /// <summary>
         /// 取得画像の幅
         /// </summary>
         public int CaptureWidth { get; set; } = 1920;
