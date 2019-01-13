@@ -76,5 +76,17 @@ namespace ikanopu.Core {
                 }
             }
         }
+        /// <summary>
+        /// 特徴量を計算
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <param name="keyPoint"></param>
+        /// <param name="descriptor"></param>
+        public static void Compute(this Mat mat, out KeyPoint[] keyPoint, Mat descriptor) {
+            var engine = BRISK.Create();
+            engine.DetectAndCompute(mat, null, out keyPoint, descriptor);
+        }
+
+
     }
 }

@@ -46,9 +46,8 @@ namespace ikanopu {
                         var postMats = cropMats.RemoveBackground().ToArray();
                         // 抽出した画像の特徴量を計算
                         var computeDatas = postMats.Select(m => {
-                            var engine = BRISK.Create();
                             var descriptor = new Mat();
-                            engine.DetectAndCompute(m.Item2, null, out var kp, descriptor);
+                            m.Item2.Compute(out var kp, descriptor);
                             return new {
                                 KeyPoints = kp,
                                 Descriptor = descriptor,
@@ -65,10 +64,12 @@ namespace ikanopu {
                                           // 同じ場所切り取ってるしdistanceの総和でも見とけばいいでしょ TODO: #ちゃんと検証しろ
                                           var score = matches.Sum(m => m.Distance);
                                           return new {
+                                              // 元データ
                                               Image = data.Image,
                                               KeyPoints = data.KeyPoints,
-                                              Matches = matches,
-                                              Score = score,
+                                              // 計算後のデータ
+                                              Matches = matches, // 一致した点の数。これは多いほうが良い
+                                              Score = score, // 小さいほどよい。KeyPointsがなければそもそも0になるのでそこだけ注意
                                           };
                                       }));
                                   }).ToArray();
@@ -77,13 +78,19 @@ namespace ikanopu {
                             var imgs =
                                 datas.Select(data => {
                                     Mat img = new Mat();
-                                    Cv2.DrawMatches(user.PreLoadImage, user.ComputeData.Item1, data.Image, data.KeyPoints, data.Matches, img);
+                                    Cv2.DrawMatches(user.PreLoadImage, user.ComputeKeyPoints, data.Image, data.KeyPoints, data.Matches, img);
                                     return img;
                                 });
-                            var names = datas.Select((data, i) => $"{user.DisplayName}-[{i}] : {data.Score}");
+                            var names = datas.Select((data, i) => $"{user.DisplayName}[{i}], {data.Score}");
+                            foreach (var n in names) {
+                                Console.WriteLine(n);
+                            }
                             Window.ShowImages(imgs, names);
                         }
 
+                        // 不一致条件
+                        // alpha0~3, bravo0~3の途中にZeroが挟まっていた場合→プラベの画面ではない可能性が高い
+                        // 一致画像は平均値-2sigmaを推移するため、これを満たす画像が見つからない場合
 
                         // デバッグ用に画像の保存
                         if (config.IsSaveDebugImage) {

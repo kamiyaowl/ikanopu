@@ -32,22 +32,22 @@ namespace ikanopu.Core {
             }
         }
         /// <summary>
-        /// AKAZE特徴量を返します
+        /// 特徴量を返します
         /// </summary>
         [JsonIgnore]
         public (KeyPoint[], Mat) ComputeData {
             get {
                 if (_keyPoints == null || _descriptor == null) {
-                    var engine = BRISK.Create();
                     _descriptor = new Mat();
-                    _keyPoints = engine.Detect(PreLoadImage);
-
-                    engine.DetectAndCompute(PreLoadImage, null, out _keyPoints, _descriptor);
+                    PreLoadImage.Compute(out _keyPoints, _descriptor);
                 }
                 return (_keyPoints, _descriptor);
-
             }
         }
+        [JsonIgnore]
+        public KeyPoint[] ComputeKeyPoints => ComputeData.Item1;
+        [JsonIgnore]
+        public Mat ComputeDescriptor => ComputeData.Item2;
 
 
         /// <summary>
