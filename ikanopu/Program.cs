@@ -168,9 +168,9 @@ namespace ikanopu {
                                 var threash = average - sigma * config.RecognizeSigmaRatio; // 一応sigmaユーザーが指定できる
                                                                                             // threashを下回ったもののみ抽出
                                 var detects =
-                                src.Where(x => x.Value.Score < threash)
-                                   .OrderBy(x => x.Value.Score)
-                                   .ToArray();
+                                    src.Where(x => x.Value.Score < threash)
+                                       .OrderBy(x => x.Value.Score)
+                                       .ToArray();
                                 //検出できなかった
                                 if (detects.Length == 0) return null;
                                 // 複数ある場合
@@ -185,6 +185,7 @@ namespace ikanopu {
                                     Team = datas[detect.Index].Team,
                                     Data = datas[detect.Index],
                                     // あとで重複が発生したときのための評価要素も残しておく
+                                    Datas = datas,
                                     Detects = detects, // 検出したやつ
                                     Independency = (average - detect.Value.Score) / sigma, // スコアが平均値からどの程度遠ざかっているか
                                     IsMultipleDetect = multipleDetect, // 似たような値が他にあった場合
@@ -199,6 +200,36 @@ namespace ikanopu {
                             invalidMessage = "名前を認識できませんでした";
                             isInvalid = true;
                         }
+                        // 複数のプレイヤーが同じ場所を見ていた場合の修正
+                        // 独立性が高く、複数検出されなかったものに優先度を置く
+                        var filteredUsers =
+                            recognizedUsers.GroupBy(x => x.Index)
+                                           .Select(y =>
+                                                y.OrderByDescending(x => x.Independency + (x.IsMultipleDetect ? -100 : 0)).First()
+                                           )
+                                           .ToList();
+                        // ボツになったやつも第二候補に動かしてあげる
+                        if (config.IsPrioritizeDetect) {
+                            var diffUsers =
+                                recognizedUsers.Where(x => !filteredUsers.Contains(x)) // 現在ない中で
+                                               .Where(x => x.IsMultipleDetect) // 複数個選択されていて
+                                               .Where(x => filteredUsers.FirstOrDefault(y => y.Index == x.Detects[1].Index) == null) // 2候補のIndexが現在のものと重複していない場合
+                                               .Select(x => {
+                                                   var detect = x.Detects[1];
+                                                   return new {
+                                                       User = x.User,
+                                                       Index = detect.Index,
+                                                       Team = x.Datas[detect.Index].Team,
+                                                       Data = x.Data,
+                                                       //
+                                                       Datas = x.Datas,
+                                                       Detects = x.Detects.Skip(1).ToArray(),
+                                                       Independency = x.Independency, // TODO:
+                                                       IsMultipleDetect = true,
+                                                   };
+                                               }).ToArray();
+                            filteredUsers.AddRange(diffUsers);
+                        }
                         if (recognizedUsers.Select(x => x.Index).Distinct().Count() != recognizedUsers.Length) {
                             invalidMessage = "複数プレイヤが同じ箇所を誤って認識している可能性があります。";
                             isInvalid = true;
@@ -211,7 +242,7 @@ namespace ikanopu {
                             InvalidMessage = invalidMessage,
                             CropMats = cropMats,
                             PostMats = postMats,
-                            RecognizedUsers = recognizedUsers,
+                            RecognizedUsers = filteredUsers.ToArray(),
                             CropPosition = cropPosition,
                         };
                         #endregion

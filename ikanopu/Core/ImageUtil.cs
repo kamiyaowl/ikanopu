@@ -32,20 +32,22 @@ namespace ikanopu.Core {
                 Scalar color;
                 switch (team) {
                     case CropOption.Team.Alpha:
-                        color = Scalar.Red;
-                        break;
-                    case CropOption.Team.Bravo:
                         color = Scalar.Green;
                         break;
+                    case CropOption.Team.Bravo:
+                        color = Scalar.Red;
+                        break;
                     case CropOption.Team.Watcher:
-                        color = Scalar.Blue;
+                        color = Scalar.White;
                         break;
                     default:
                         throw new NotImplementedException();
                 }
                 mat.Rectangle(rect, color);
                 if (recs.ContainsKey(i)) {
-                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, Scalar.White, 1, LineTypes.AntiAlias, false);
+                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, color, 1, LineTypes.AntiAlias, false);
+                } else {
+                    mat.PutText("*unregistered*", rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, color, 1, LineTypes.AntiAlias, false);
                 }
                 i++;
             }
