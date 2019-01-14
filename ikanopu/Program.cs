@@ -105,7 +105,7 @@ namespace ikanopu {
                                       return (user, computeDatas.Select(data => {
                                           var matches = data.KeyPoints.Length == 0 ? new DMatch[] { } : matcher.Match(d, data.Descriptor).ToArray();
                                           // 同じ場所切り取ってるしdistanceの総和でも見とけばいいでしょ TODO: #ちゃんと検証しろ
-                                          var score = matches?.Sum(m => m.Distance) ?? 0;
+                                          var score = matches.Length == 0 ? 0 : matches.Average(m => m.Distance);
                                           return new {
                                               // 元データ
                                               Team = data.Team,
