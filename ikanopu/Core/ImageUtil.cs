@@ -18,12 +18,13 @@ namespace ikanopu.Core {
         /// <param name="src"></param>
         public static void DrawCropPreview(this Mat mat, IEnumerable<(CropOption.Team, Rect)> src, IEnumerable<(int, string)> recognized) {
             // デバッグ中に同一キー確認で落ちるのが煩わしい
-            Dictionary<int, string> recs;
-            try {
-                recs = recognized.ToDictionary(x => x.Item1, x => x.Item2);
-            } catch (Exception ex) {
-                Console.WriteLine(ex);
-                return;
+            Dictionary<int, string> recs = new Dictionary<int, string>();
+            foreach (var (index, str) in recognized) {
+                if (recs.ContainsKey(index)) {
+                    recs[index] += $"/{str}";
+                } else {
+                    recs.Add(index, str);
+                }
             }
 
             int i = 0;
@@ -44,7 +45,7 @@ namespace ikanopu.Core {
                 }
                 mat.Rectangle(rect, color);
                 if (recs.ContainsKey(i)) {
-                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 1.0, Scalar.White, 2, LineTypes.AntiAlias, false);
+                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, Scalar.White, 1, LineTypes.AntiAlias, false);
                 }
                 i++;
             }
