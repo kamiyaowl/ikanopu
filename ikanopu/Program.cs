@@ -103,9 +103,9 @@ namespace ikanopu {
                                   .Select(user => {
                                       var (kp, d) = user.ComputeData;
                                       return (user, computeDatas.Select(data => {
-                                          var matches = matcher.Match(d, data.Descriptor).ToArray();
+                                          var matches = data.KeyPoints.Length == 0 ? new DMatch[] { } : matcher.Match(d, data.Descriptor).ToArray();
                                           // 同じ場所切り取ってるしdistanceの総和でも見とけばいいでしょ TODO: #ちゃんと検証しろ
-                                          var score = matches.Sum(m => m.Distance);
+                                          var score = matches?.Sum(m => m.Distance) ?? 0;
                                           return new {
                                               // 元データ
                                               Team = data.Team,
@@ -123,19 +123,19 @@ namespace ikanopu {
 
                         #region for Debug: マッチの結果を全部画像に出力に書く
                         // デバッグ 
-                        foreach (var (user, datas) in matchResults) {
-                            var imgs =
-                                datas.Select(data => {
-                                    Mat img = new Mat();
-                                    Cv2.DrawMatches(user.PreLoadImage, user.ComputeKeyPoints, data.Image, data.KeyPoints, data.Matches, img);
-                                    return img;
-                                });
-                            var names = datas.Select((data, i) => $"{user.DisplayName}[{i}], {data.Score}");
-                            //foreach (var n in names) {
-                            //    Console.WriteLine(n);
-                            //}
-                            //Window.ShowImages(imgs, names);
-                        }
+                        ////foreach (var (user, datas) in matchResults) {
+                        ////    var imgs =
+                        ////        datas.Select(data => {
+                        ////            Mat img = new Mat();
+                        ////            Cv2.DrawMatches(user.PreLoadImage, user.ComputeKeyPoints, data.Image, data.KeyPoints, data.Matches, img);
+                        ////            return img;
+                        ////        });
+                        ////    var names = datas.Select((data, i) => $"{user.DisplayName}[{i}], {data.Score}");
+                        //    //foreach (var n in names) {
+                        //    //    Console.WriteLine(n);
+                        //    //}
+                        //    //Window.ShowImages(imgs, names);
+                        //}
                         #endregion
 
                         #region 一致するユーザを判定
