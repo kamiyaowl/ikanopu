@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
@@ -18,17 +19,30 @@ namespace ikanopu {
         public static readonly string CONFIG_PATH = "config.json";
         public static readonly string SECRET_PATH = "secret.json";
 
+        #region discord
+        private static DiscordSocketClient client;
+        private static CommandService commands;
+        private static IServiceProvider services;
+        #endregion
+
         [STAThread]
         static async Task Main(string[] args) {
             // 設定読み込み
             using (var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig()) {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
-                var client = new DiscordSocketClient();
-                var commands = new CommandService();
-                var services = new ServiceCollection().BuildServiceProvider();
+                #region Setup Discord
+                client = new DiscordSocketClient();
+                commands = new CommandService();
+                services = new ServiceCollection().BuildServiceProvider();
                 client.MessageReceived += Client_MessageReceived;
+                client.Log += Client_Log;
+                await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
+                await client.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
+                await client.StartAsync();
+                #endregion
 
+                // 画像処理ループ終わったら終わる
                 await Task.Run(() => {
                     ProcessImage(config, secret);
                 });
@@ -41,8 +55,29 @@ namespace ikanopu {
             }
         }
 
-        private static Task Client_MessageReceived(SocketMessage arg) {
-            throw new NotImplementedException();
+        private static Task Client_Log(Discord.LogMessage message) {
+            Console.WriteLine(message.ToString());
+            return Task.CompletedTask;
+        }
+
+        private static async Task Client_MessageReceived(SocketMessage socketMessage) {
+            var message = socketMessage as SocketUserMessage;
+            Console.WriteLine($"#{message.Channel.Name}: @{message.Author.Username}: {message}");
+
+            int argPos = 0;
+            if (message.Author.IsBot) return;
+            if (!message.HasCharPrefix('!', ref argPos) && !message.HasMentionPrefix(client.CurrentUser, ref argPos)) {
+                return;
+            }
+            // コマンド実行してあげる
+            var context = new CommandContext(client, message);
+            var result = await commands.ExecuteAsync(context, argPos, services);
+            // ダメ
+            if (!result.IsSuccess) {
+                Console.WriteLine(result.ErrorReason);
+                return;
+            }
+
         }
 
         private static void ProcessImage(GlobalConfig config, SecretConfig secret) {
@@ -271,10 +306,11 @@ namespace ikanopu {
                         }
                         // プレビュー画像に書き込み
                         captureMat.DrawCropPreview(result.CropPosition, result.RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
-                    }
-                    win.ShowImage(captureMat);
 
-                    Console.WriteLine($"Ticks: {DateTime.Now.Ticks}");
+                    }
+                    // Timestamp書いとく
+                    captureMat.PutText($"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}", new Point(0, 32), HersheyFonts.HersheyComplex, 1, Scalar.White, 1, LineTypes.AntiAlias, false);
+                    win.ShowImage(captureMat);
                 }
             }
         }

@@ -45,9 +45,9 @@ namespace ikanopu.Core {
                 }
                 mat.Rectangle(rect, color);
                 if (recs.ContainsKey(i)) {
-                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, color, 1, LineTypes.AntiAlias, false);
+                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.8, color, 1, LineTypes.AntiAlias, false);
                 } else {
-                    mat.PutText("*unregistered*", rect.BottomRight, HersheyFonts.HersheyComplex, 0.5, color, 1, LineTypes.AntiAlias, false);
+                    mat.PutText("*unregistered*", rect.BottomRight, HersheyFonts.HersheyComplex, 0.8, color, 1, LineTypes.AntiAlias, false);
                 }
                 i++;
             }
