@@ -1,6 +1,8 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using ikanopu.Config;
 using ikanopu.Service;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +18,11 @@ namespace ikanopu.Module {
             var sb = new StringBuilder();
             sb.AppendLine("ikanopu(beta)");
             sb.AppendLine("プライベートマッチの音声チャンネル遷移を自動でやってくれるかも");
-            sb.AppendLine($"DIしたサービスの値を読み出してみる：{ImageProcessingService.TestData}");
             await ReplyAsync(sb.ToString());
+        }
+        [Command("pu show config")]
+        public async Task ShowConfig() {
+            await ReplyAsync($"```\n{JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.None)}\n```");
         }
         [Command("pu echo")]
         public async Task Echo([Remainder] string text) {

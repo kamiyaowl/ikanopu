@@ -21,7 +21,7 @@ namespace ikanopu {
         public static readonly string SECRET_PATH = "secret.json";
 
         #region discord
-        private static DiscordSocketClient client;
+        private static DiscordSocketClient discord;
         private static CommandService commands;
         private static IServiceProvider services;
         #endregion
@@ -33,18 +33,28 @@ namespace ikanopu {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
                 #region Setup Discord
-                client = new DiscordSocketClient();
-                commands = new CommandService();
+
+                // socket clientの初期化
+                discord = new DiscordSocketClient();
+                discord.MessageReceived += Client_MessageReceived;
+                discord.Log += Client_Log;
+
+                // サービスのDI
                 services =
                     new ServiceCollection()
                     .AddSingleton<DiscordSocketClient>()
                     .AddSingleton<ImageProcessingService>()
                     .BuildServiceProvider();
-                client.MessageReceived += Client_MessageReceived;
-                client.Log += Client_Log;
+                await services.GetRequiredService<ImageProcessingService>().InitializeAsync(config);
+
+                // 本プロジェクトにあるコマンドを全部ロード
+                commands = new CommandService();
                 await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
-                await client.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
-                await client.StartAsync();
+
+                //ログインして通信開始
+                await discord.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
+                await discord.StartAsync();
+
                 #endregion
 
                 // 画像処理ループ終わったら終わる
@@ -52,11 +62,15 @@ namespace ikanopu {
                     ProcessImage(config, secret);
                 });
 
+                #region Finalize
+
                 // 終了時にコンフィグを書き直してあげる（バージョンが変わっていたときなど、あるじゃん)
                 config.UpdatedAt = DateTime.Now;
                 secret.UpdatedAt = DateTime.Now;
                 File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
                 File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
+
+                #endregion
             }
         }
 
@@ -71,11 +85,11 @@ namespace ikanopu {
 
             int argPos = 0;
             if (message.Author.IsBot) return;
-            if (!message.HasCharPrefix('!', ref argPos) && !message.HasMentionPrefix(client.CurrentUser, ref argPos)) {
+            if (!message.HasCharPrefix('!', ref argPos) && !message.HasMentionPrefix(discord.CurrentUser, ref argPos)) {
                 return;
             }
             // コマンド実行してあげる
-            var context = new CommandContext(client, message);
+            var context = new CommandContext(discord, message);
             var result = await commands.ExecuteAsync(context, argPos, services);
             // ダメ
             if (!result.IsSuccess) {
