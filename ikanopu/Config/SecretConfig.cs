@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Config {
-    class SecretConfig {
+    public class SecretConfig {
         /// <summary>
         /// Botアクセス用のトークン
         /// </summary>

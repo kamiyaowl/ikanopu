@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Core {
-    class CropOption {
+    public class CropOption {
         public enum Team {
             Alpha, Bravo, Watcher, None
         }

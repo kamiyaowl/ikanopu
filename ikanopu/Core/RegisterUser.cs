@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Core {
-    class RegisterUser : IDisposable {
+    public class RegisterUser : IDisposable {
         //TODO: discord周りの設定も追加
         public string DisplayName { get; set; }
         public string ImagePath { get; set; }

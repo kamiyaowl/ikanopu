@@ -10,12 +10,13 @@ using Discord.Commands;
 using Discord.WebSocket;
 using ikanopu.Config;
 using ikanopu.Core;
+using ikanopu.Service;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using OpenCvSharp;
 
 namespace ikanopu {
-    class Program {
+    public class Program {
         public static readonly string CONFIG_PATH = "config.json";
         public static readonly string SECRET_PATH = "secret.json";
 
@@ -34,7 +35,11 @@ namespace ikanopu {
                 #region Setup Discord
                 client = new DiscordSocketClient();
                 commands = new CommandService();
-                services = new ServiceCollection().BuildServiceProvider();
+                services =
+                    new ServiceCollection()
+                    .AddSingleton<DiscordSocketClient>()
+                    .AddSingleton<ImageProcessingService>()
+                    .BuildServiceProvider();
                 client.MessageReceived += Client_MessageReceived;
                 client.Log += Client_Log;
                 await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
@@ -80,6 +85,11 @@ namespace ikanopu {
 
         }
 
+        /// <summary>
+        /// TODO: ImageProcessingServiceに移動
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="secret"></param>
         private static void ProcessImage(GlobalConfig config, SecretConfig secret) {
 
             // 毎回計算するのも面倒なので、座標は確定しておく

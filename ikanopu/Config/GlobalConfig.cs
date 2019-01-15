@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Config {
-    class GlobalConfig : IDisposable {
+    public class GlobalConfig : IDisposable {
         /// <summary>
         /// キャプチャデバイスのインデックス
         /// </summary>

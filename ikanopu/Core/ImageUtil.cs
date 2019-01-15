@@ -10,7 +10,7 @@ namespace ikanopu.Core {
     /// 画像処理系の内容はすべてここに
     /// 返却するMatの破棄は、呼び出し元が責任をもって
     /// </summary>
-    static class ImageUtil {
+    public static class ImageUtil {
         /// <summary>
         /// 画像切り抜きのプレビューを表示します。デバッグ用
         /// </summary>

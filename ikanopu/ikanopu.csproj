@@ -149,15 +149,17 @@
     <Compile Include="Config\SecretConfig.cs" />
     <Compile Include="Core\CropOption.cs" />
     <Compile Include="Core\ImageUtil.cs" />
-    <Compile Include="Module\ImageAnalyzeModule.cs" />
+    <Compile Include="Module\ImageProcessingModule.cs" />
     <Compile Include="Core\RegisterUser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service\ImageProcessingService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
