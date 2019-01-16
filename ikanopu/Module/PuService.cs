@@ -32,7 +32,7 @@ namespace ikanopu.Module {
                 builder.AddField(
                     c.Name + " " + string.Join(" ", c.Parameters.Select(x => $"[{x.Name}]")),
                     (c.Summary ?? "no description") + "\n" +
-                        string.Join("\n", c.Parameters.Select(x => $"{x.Name} - {x.Summary}"))
+                        string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}"))
                 );
             }
             await ReplyAsync(sb.ToString(), false, builder.Build());
@@ -51,8 +51,16 @@ namespace ikanopu.Module {
             await Context.Channel.SendFileAsync("capture.jpg", "capture.jpg");
         }
         [Command("pu show config"), Summary("config.jsonの内容を表示します")]
-        public async Task ShowConfig() {
-            await ReplyAsync($"```\n{JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.None)}\n```");
+        public async Task ShowConfigRaw([Summary("子要素名、`--all`指定するとすべて表示")] string name) {
+            string str = null;
+            if (name.Equals("--all")) {
+                str = JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.None);
+            } else {
+                dynamic config = ImageProcessingService.Config;
+                var deserialized = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(config));
+                str = JsonConvert.SerializeObject(deserialized[name], Formatting.Indented);
+            }
+            await ReplyAsync($"```\n{str}\n```");
         }
         [Command("pu echo"), Summary("俺がオウムだ")]
         public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
