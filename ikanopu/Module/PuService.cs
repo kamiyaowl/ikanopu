@@ -25,9 +25,15 @@ namespace ikanopu.Module {
             sb.AppendLine("プライベートマッチの音声チャンネル遷移を自動でやってくれるかも");
             sb.AppendLine();
             sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます");
+            sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuService.cs");
+
             var builder = new EmbedBuilder();
             foreach (var c in CommandService.Commands) {
-                builder.AddField(c.Name, c.Summary ?? "no description");
+                builder.AddField(
+                    c.Name + " " + string.Join(" ", c.Parameters.Select(x => $"[{x.Name}]")),
+                    (c.Summary ?? "no description") + "\n" +
+                        string.Join("\n", c.Parameters.Select(x => $"{x.Name} - {x.Summary}"))
+                );
             }
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
@@ -49,7 +55,7 @@ namespace ikanopu.Module {
             await ReplyAsync($"```\n{JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.None)}\n```");
         }
         [Command("pu echo"), Summary("俺がオウムだ")]
-        public async Task Echo([Remainder] string text) {
+        public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
             await ReplyAsync($"\u200B{text}");
         }
     }
