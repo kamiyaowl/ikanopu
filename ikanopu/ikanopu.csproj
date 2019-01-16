@@ -149,7 +149,7 @@
     <Compile Include="Config\SecretConfig.cs" />
     <Compile Include="Core\CropOption.cs" />
     <Compile Include="Core\ImageUtil.cs" />
-    <Compile Include="Module\ImageProcessingModule.cs" />
+    <Compile Include="Module\PuService.cs" />
     <Compile Include="Core\RegisterUser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -32,6 +33,12 @@ namespace ikanopu {
             using (var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig()) {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
+                // Configの画像が正しく存在しているよね
+                if (!config.RegisterUsers.Any(x => File.Exists(x.ImagePath))) {
+                    Console.WriteLine("Error: Registered Userの画像が参照できませんでした");
+                    Environment.Exit(1);
+                }
+
                 #region Setup Discord
 
                 // socket clientの初期化
@@ -45,7 +52,6 @@ namespace ikanopu {
                     .AddSingleton<DiscordSocketClient>()
                     .AddSingleton<ImageProcessingService>()
                     .BuildServiceProvider();
-                await services.GetRequiredService<ImageProcessingService>().InitializeAsync(config);
 
                 // 本プロジェクトにあるコマンドを全部ロード
                 commands = new CommandService();
@@ -57,19 +63,27 @@ namespace ikanopu {
 
                 #endregion
 
-                // 画像処理ループ終わったら終わる
-                await Task.Run(() => {
-                    ProcessImage(config, secret);
-                });
+                #region 画像処理
+                await services.GetRequiredService<ImageProcessingService>().InitializeAsync(config);
+                // メインスレッドで画像を表示してあげるしかない
+                using (Window captureRawWindow = new Window("Capture Raw")) {
+                    var cancelTokenSource = new CancellationTokenSource();
+#pragma warning disable CS4014
+                    services.GetRequiredService<ImageProcessingService>().CaptureAsync(cancelTokenSource.Token);
+#pragma warning restore CS4014
+                    while (Cv2.WaitKey(config.CaptureDelayMs) != config.CaptureBreakKey) {
+                        captureRawWindow.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
+                    }
+                    cancelTokenSource.Cancel();
+                }
+                #endregion
 
                 #region Finalize
-
                 // 終了時にコンフィグを書き直してあげる（バージョンが変わっていたときなど、あるじゃん)
                 config.UpdatedAt = DateTime.Now;
                 secret.UpdatedAt = DateTime.Now;
                 File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
                 File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
-
                 #endregion
             }
         }
@@ -141,7 +155,6 @@ namespace ikanopu {
 
                         #region 前処理: 名前ごとに分解
                         var cropMats = captureMat.CropNames(cropPosition).ToArray();
-                        var teams = cropMats.Select(x => x.Item1).ToArray();
                         var postMats = cropMats.RemoveBackground().ToArray();
                         #endregion
 
