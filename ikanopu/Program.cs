@@ -33,11 +33,12 @@ namespace ikanopu {
             using (var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig()) {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
-                // Configの画像が正しく存在しているよね
-                if (!config.RegisterUsers.Any(x => File.Exists(x.ImagePath))) {
-                    Console.WriteLine("Error: Registered Userの画像が参照できませんでした");
-                    Environment.Exit(1);
-                }
+                #region 前処理
+
+                CheckDiscordTokenSecret(secret);
+                CheckRegisterUserImage(config);
+                
+                #endregion
 
                 #region Setup Discord
 
@@ -85,6 +86,23 @@ namespace ikanopu {
                 File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
                 File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
                 #endregion
+            }
+        }
+
+        private static void CheckRegisterUserImage(GlobalConfig config) {
+            if (!config.RegisterUsers.Any(x => File.Exists(x.ImagePath))) {
+                Console.WriteLine("Error: Registered Userの画像が参照できませんでした");
+                Environment.Exit(1);
+            }
+        }
+
+        private static void CheckDiscordTokenSecret(SecretConfig secret) {
+            if (string.IsNullOrWhiteSpace(secret.DiscordToken)) {
+                Console.WriteLine("DiscordのBot用のトークンを入力してください(secret.jsonに保存されるだけなので心配しないで");
+                Console.Write(">");
+                secret.DiscordToken = Console.ReadLine();
+                secret.UpdatedAt = DateTime.Now;
+                File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
             }
         }
 
