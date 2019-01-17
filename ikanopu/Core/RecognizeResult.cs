@@ -9,7 +9,7 @@ namespace ikanopu.Core {
     /// <summary>
     /// 画像認識結果を返します
     /// </summary>
-    public class RecognizeResult: IDisposable {
+    public class RecognizeResult : IDisposable {
         /// <summary>
         /// 認識に失敗した要素がある場合はtrue
         /// </summary>
@@ -26,6 +26,20 @@ namespace ikanopu.Core {
         /// 認識に使用した画像を保持しておきます
         /// </summary>
         public Mat[] SourceMats { get; set; }
+        /// <summary>
+        /// 切り取り領域
+        /// </summary>
+        public (CropOption.Team t, Rect r)[] CropOption { get; set; }
+
+        /// <summary>
+        /// 認識結果を描画します
+        /// </summary>
+        /// <param name="originMat">originMatが直接編集されます</param>
+        /// <returns></returns>
+        public void DrawPreview(Mat originMat) {
+            if (RecognizedUsers == null) { return; }
+            originMat.DrawCropPreview(CropOption, RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
+        }
 
         #region IDisposable Support
         private bool disposedValue = false;

@@ -55,7 +55,11 @@ namespace ikanopu.Service {
                     // ゴミが入っているので最初に読んでおく
                     capture.Read(this.CaptureRawMat);
                     while (!cancellationToken.IsCancellationRequested) {
-                        capture.Read(this.CaptureRawMat);
+                        lock (this.CaptureRawMat) {
+                            capture.Read(this.CaptureRawMat);
+                            CaptureRawMat.PutText($"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}", new Point(0, 32), HersheyFonts.HersheyComplex, 1, Scalar.White, 1, LineTypes.AntiAlias, false);
+                        }
+
                         Task.Delay(Config.CaptureDelayMs);
                     }
                     Console.WriteLine("ImageProcessingService#CaptureAsync() Canceled");
@@ -88,18 +92,19 @@ namespace ikanopu.Service {
         }
 
         /// <summary>
-        /// 画像認識を行った結果を返します
+        /// 画像認識を実施します
         /// </summary>
-        /// <param name="postMats"></param>
+        /// <param name="cropIndex"></param>
         /// <returns></returns>
-        public Task<RecognizeResult> RecognizeAsync((CropOption.Team, Mat)[] postMats) {
-            return Task.FromResult(postMats.Recognize(this.Config));
-        }
         public async Task<RecognizeResult> RecognizeAsync(int cropIndex) {
             await CropNamesAsync(cropIndex, out var cropMats, out var postMats);
-            cropMats.DisposeAll();
+            cropMats.DisposeAll(); // 使わないので破棄
 
-            return await RecognizeAsync(postMats);
+            var result = postMats.Recognize(this.Config);
+            // cropPositionを付与してあげよう
+            result.CropOption = this.cropPositions[cropIndex];
+
+            return result;
         }
         #region IDisposable Support
         private bool disposedValue = false; // 重複する呼び出しを検出するには

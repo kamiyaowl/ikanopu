@@ -44,7 +44,12 @@ namespace ikanopu.Core {
                     default:
                         throw new NotImplementedException();
                 }
+
+                // 認識領域を書く
                 mat.Rectangle(rect, color);
+                // Indexを書く
+                mat.PutText($"[{i}]", rect.TopLeft, HersheyFonts.HersheyComplex, 0.8, Scalar.White, 1, LineTypes.AntiAlias, false);
+                // 認識結果を書く
                 if (recs.ContainsKey(i)) {
                     mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.8, color, 1, LineTypes.AntiAlias, false);
                 } else {

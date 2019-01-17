@@ -34,10 +34,16 @@ namespace ikanopu {
                 var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
 
                 #region 前処理
+                if (!Directory.Exists(config.RegisterImageDirectory)) {
+                    Directory.CreateDirectory(config.RegisterImageDirectory);
+                }
+                if (!Directory.Exists(config.TemporaryDirectory)) {
+                    Directory.CreateDirectory(config.TemporaryDirectory);
+                }
 
                 CheckDiscordTokenSecret(secret);
                 CheckRegisterUserImage(config);
-                
+
                 #endregion
 
                 #region Setup Discord
@@ -61,6 +67,7 @@ namespace ikanopu {
                 //ログインして通信開始
                 await discord.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
                 await discord.StartAsync();
+                await discord.SetGameAsync("イカ", "https://github.com/kamiyaowl/ikanopu", Discord.ActivityType.Watching);
 
                 #endregion
 
@@ -85,6 +92,8 @@ namespace ikanopu {
                 secret.UpdatedAt = DateTime.Now;
                 File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
                 File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
+
+                Console.WriteLine("config.jsonを更新しました");
                 #endregion
             }
         }

@@ -45,7 +45,6 @@ namespace ikanopu.Config {
         /// <summary>
         /// 切り出す名前の座標設定
         /// </summary>
-        [JsonIgnore] //TODO:TEST
         public CropOption[] CropOptions { get; set; } = new[] {
             CropOption.Generate(),
             CropOption.GenerateWithWatcher(),
@@ -54,6 +53,10 @@ namespace ikanopu.Config {
         /// 登録した画像のデフォルト保存先
         /// </summary>
         public string RegisterImageDirectory { get; set; } = "regiters";
+        /// <summary>
+        /// 一時ファイル置き場
+        /// </summary>
+        public string TemporaryDirectory { get; set; } = "tmp";
         /// <summary>
         /// テンプレートマッチ登録者一覧
         /// </summary>
