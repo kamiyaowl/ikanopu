@@ -12,13 +12,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Module {
+    [Group("pu"), Alias("ikanopu")]
     public class PuModule : ModuleBase {
         public DiscordSocketClient Discord { get; set; }
         public CommandService CommandService { get; set; }
         public ImageProcessingService ImageProcessingService { get; set; }
 
-        [Command("pu"), Summary("コマンド一覧を表示します")]
-        [Alias("ikanopu", "pu help", "ikanopu help")]
+        [Command, Summary("コマンド一覧を表示します")]
+        [Alias("help")]
         public async Task Help() {
             var sb = new StringBuilder();
             sb.AppendLine("*ikanopu(beta)*");
@@ -30,7 +31,7 @@ namespace ikanopu.Module {
             var builder = new EmbedBuilder();
             foreach (var c in CommandService.Commands) {
                 builder.AddField(
-                    c.Name + " " + string.Join(" ", c.Parameters.Select(x => $"[{x.Name}]")),
+                    c.Aliases.First(),
                     (c.Summary ?? "no description") + "\n" +
                         string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}"))
                 );
@@ -38,7 +39,7 @@ namespace ikanopu.Module {
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
 
-        [Command("pu capture"), Summary("現在のキャプチャデバイスの画像を取得します")]
+        [Command("capture"), Summary("現在のキャプチャデバイスの画像を取得します")]
         public async Task Capture() {
             Mat mat = null;
             lock (ImageProcessingService.CaptureRawMat) {
@@ -50,7 +51,7 @@ namespace ikanopu.Module {
 
             await Context.Channel.SendFileAsync("capture.jpg", "capture.jpg");
         }
-        [Command("pu show config"), Summary("config.jsonの内容を表示します")]
+        [Command("show config"), Summary("config.jsonの内容を表示します")]
         public async Task ShowConfigRaw([Summary("子要素名、`--all`指定するとすべて表示")] string name) {
             string str = null;
             if (name.Equals("--all")) {
@@ -62,7 +63,7 @@ namespace ikanopu.Module {
             }
             await ReplyAsync($"```\n{str}\n```");
         }
-        [Command("pu echo"), Summary("俺がオウムだ")]
+        [Command("echo"), Summary("俺がオウムだ")]
         public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
             await ReplyAsync($"\u200B{text}");
         }
