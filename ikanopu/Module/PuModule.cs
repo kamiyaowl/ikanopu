@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ikanopu.Module {
-    public class PuService : ModuleBase {
+    public class PuModule : ModuleBase {
         public DiscordSocketClient Discord { get; set; }
         public CommandService CommandService { get; set; }
         public ImageProcessingService ImageProcessingService { get; set; }
@@ -25,7 +25,7 @@ namespace ikanopu.Module {
             sb.AppendLine("プライベートマッチの音声チャンネル遷移を自動でやってくれるかも");
             sb.AppendLine();
             sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます");
-            sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuService.cs");
+            sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs");
 
             var builder = new EmbedBuilder();
             foreach (var c in CommandService.Commands) {
