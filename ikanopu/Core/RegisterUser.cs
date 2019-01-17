@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace ikanopu.Core {
     public class RegisterUser : IDisposable {
+        public override string ToString() =>
+            $"{DisplayName}";
         //TODO: discord周りの設定も追加
         public string DisplayName { get; set; }
         public string ImagePath { get; set; }

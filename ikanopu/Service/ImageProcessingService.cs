@@ -62,6 +62,7 @@ namespace ikanopu.Service {
                 }
             }, cancellationToken);
         }
+
         /// <summary>
         /// 指定された領域で名前画像の切り抜きと背景削除を行います
         /// </summary>
@@ -69,7 +70,7 @@ namespace ikanopu.Service {
         /// <param name="cropMats"></param>
         /// <param name="postMats"></param>
         /// <returns></returns>
-        private Task<(bool, string)> CropAndRemoveBackgroundAsync(int cropIndex, out (CropOption.Team, Mat)[] cropMats, out (CropOption.Team, Mat)[] postMats) {
+        public Task<(bool, string)> CropNamesAsync(int cropIndex, out (CropOption.Team, Mat)[] cropMats, out (CropOption.Team, Mat)[] postMats) {
             cropMats = new(CropOption.Team, Mat)[] { };
             postMats = new(CropOption.Team, Mat)[] { };
             if (this.cropPositions.Length <= cropIndex) {
@@ -86,7 +87,20 @@ namespace ikanopu.Service {
             return Task.FromResult((true, ""));
         }
 
+        /// <summary>
+        /// 画像認識を行った結果を返します
+        /// </summary>
+        /// <param name="postMats"></param>
+        /// <returns></returns>
+        public Task<RecognizeResult> RecognizeAsync((CropOption.Team, Mat)[] postMats) {
+            return Task.FromResult(postMats.Recognize(this.Config));
+        }
+        public async Task<RecognizeResult> RecognizeAsync(int cropIndex) {
+            await CropNamesAsync(cropIndex, out var cropMats, out var postMats);
+            cropMats.DisposeAll();
 
+            return await RecognizeAsync(postMats);
+        }
         #region IDisposable Support
         private bool disposedValue = false; // 重複する呼び出しを検出するには
 

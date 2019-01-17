@@ -149,6 +149,8 @@
     <Compile Include="Config\SecretConfig.cs" />
     <Compile Include="Core\CropOption.cs" />
     <Compile Include="Core\ImageUtil.cs" />
+    <Compile Include="Core\RecognizeResult.cs" />
+    <Compile Include="Core\RecognizedUser.cs" />
     <Compile Include="Module\PuModule.cs" />
     <Compile Include="Core\RegisterUser.cs" />
     <Compile Include="Program.cs" />
