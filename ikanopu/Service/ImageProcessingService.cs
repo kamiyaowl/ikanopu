@@ -106,6 +106,16 @@ namespace ikanopu.Service {
 
             return result;
         }
+        /// <summary>
+        /// 指定されたインデックス全部やる
+        /// </summary>
+        /// <param name="indexes"></param>
+        /// <returns></returns>
+        public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes) {
+            var results = await Task.WhenAll(indexes.Select(x => RecognizeAsync(x)));
+            return results.OrderByDescending(x => x.Score).ToArray();
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // 重複する呼び出しを検出するには
 

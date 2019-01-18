@@ -41,47 +41,55 @@ namespace ikanopu.Module {
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
 
-        [Command("detect"), Summary("現在の画面から認識結果を返します")]
+        [Command("detect"), Summary("現在の画面から認識結果を返し、ユーザーのボイスチャットを遷移させます")]
         public async Task Capture(
-            [Summary("切り出す領域を設定します。`!pu show config CropOptions`で閲覧できます")] int cropIndex = 0,
-            [Summary("trueの場合、認識に使用した画像もアップロードします")] bool uploadImage = false
+            [Summary("(optional) 推測結果からユーザを移動させる場合はtrue。(default: true)")] bool move = true,
+            [Summary("(optional) 切り出す領域を設定します。未指定の場合は成果の良い方を採用。`!pu show config CropOptions`で閲覧できます")] int cropIndex = -1,
+            [Summary("(optional) trueの場合、認識に使用した画像もアップロードします")] bool uploadImage = true
             ) {
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
             // とりあえず認識してあげる
-            // TODO: index指定をやめて、推測させるところまで移植する
-
-            using (var result = await ImageProcessingService.RecognizeAsync(cropIndex)) {
-                Mat mat = null;
-                // アップロード用のプレビューを作る
-                lock (ImageProcessingService.CaptureRawMat) {
-                    mat = ImageProcessingService.CaptureRawMat.Clone();
-                }
-                result.DrawPreview(mat);
-                mat.SaveImage(path);
-                mat.Dispose();
-                mat = null;
-                // あとで登録できるようにpostMatsをローカルに保管する
-                foreach (var (sourceMat, i) in result.SourceMats.Select((x, i) => (x, i))) {
-                    var p = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, $"recognize-[{i}].bmp");
-                    sourceMat.SaveImage(p);
-                }
-                // 認識結果の埋め込みを作ってあげる
-                var builder = new EmbedBuilder();
-                foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                    builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
-                }
-                // 返す
-                var message = @"*認識結果*
+            var targetIndexes = cropIndex == -1 ? Enumerable.Range(0, ImageProcessingService.Config.CropOptions.Length) : new[] { cropIndex };
+            var results = await ImageProcessingService.RecognizeAllAsync(targetIndexes);
+            if (results.Length == 0) {
+                await ReplyAsync("結果を生成しませんでした");
+                return;
+            }
+            var result = results.First();
+            Mat mat = null;
+            // アップロード用のプレビューを作る
+            lock (ImageProcessingService.CaptureRawMat) {
+                mat = ImageProcessingService.CaptureRawMat.Clone();
+            }
+            result.DrawPreview(mat);
+            mat.SaveImage(path);
+            mat.Dispose();
+            mat = null;
+            // あとで登録できるようにpostMatsをローカルに保管する
+            foreach (var (sourceMat, i) in result.SourceMats.Select((x, i) => (x, i))) {
+                var p = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, $"recognize-[{i}].bmp");
+                sourceMat.SaveImage(p);
+            }
+            // Disposeしとく
+            foreach (var r in results) {
+                r.Dispose();
+            }
+            // 認識結果の埋め込みを作ってあげる
+            var builder = new EmbedBuilder();
+            foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
+                builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+            }
+            // 返す
+            var message = @"*認識結果*
 
 現在登録されてないユーザは以下のコマンドで登録できます。
 `!pu register [Discord IDもしくは表示名] [登録したい名前の横に書かれた数字]`
 ※認識結果が異なる場合、現在の画像で追加登録することで認識精度を改善できます。(未検証）
 ";
-                if (uploadImage) {
-                    await Context.Channel.SendFileAsync(path, message, false, builder.Build());
-                } else {
-                    await ReplyAsync(message, false, builder.Build());
-                }
+            if (uploadImage) {
+                await Context.Channel.SendFileAsync(path, message, false, builder.Build());
+            } else {
+                await ReplyAsync(message, false, builder.Build());
             }
         }
 

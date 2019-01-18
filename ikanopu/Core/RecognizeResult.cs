@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Newtonsoft.Json;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,14 @@ namespace ikanopu.Core {
         /// </summary>
         public (CropOption.Team t, Rect r)[] CropOption { get; set; }
 
+        /// <summary>
+        /// RecognizeResult同士で比較するため、高いほどよい
+        /// </summary>
+        [JsonIgnore]
+        public double Score =>
+            ((RecognizedUsers?.Sum(x => x.Independency) ?? 0) * 100) +
+            ((RecognizedUsers?.Length ?? 0) * 10) +
+            (IsInvalid ? -1000 : 0);
         /// <summary>
         /// 認識結果を描画します
         /// </summary>
