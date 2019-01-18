@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ikanopu.Core;
+using static ikanopu.Core.CropOption;
 
 namespace ikanopu.Module {
     [Group("pu"), Alias("ikanopu")]
@@ -41,7 +42,42 @@ namespace ikanopu.Module {
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
 
-        [Command("detect"), Summary("現在の画面から認識結果を返し、ユーザーのボイスチャットを遷移させます")]
+        [Command("lobby"), Summary("みんなをロビーに集めます。アルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です")]
+        public async Task Lobby() {
+            var vcs = await Context.Guild.GetVoiceChannelsAsync();
+            var targetChannels = new[]{
+                        (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
+                        (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
+                        (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
+                    }
+                .Where(x => x.Item2.HasValue)
+                .Select(x => (x.Item1, vcs.FirstOrDefault(vc => vc.Id == x.Item2.Value)))
+                .Where(x => x.Item2 != null)
+                .ToDictionary(x => x.Item1, x => x.Item2);
+
+            if (!targetChannels.ContainsKey(Team.Watcher)) {
+                await ReplyAsync("LobbyVoiceChannelIdが未登録です");
+                return;
+            }
+            var lobby = targetChannels[Team.Watcher];
+            var builder = new EmbedBuilder();
+            foreach (var c in targetChannels) {
+                // 動かす必要なかった
+                if (c.Key == Team.Watcher) continue;
+
+                var users = await c.Value.GetUsersAsync().FlattenAsync();
+                var filtered =
+                    users.Where(x => x.Status != UserStatus.Offline)
+                         .ToArray();
+                foreach (var u in users) {
+                    builder.AddField($"{u.Username}#{u.Discriminator}", $"{u.VoiceChannel.Name} -> {lobby.Name}");
+                    await u.ModifyAsync(x => x.ChannelId = Optional.Create(lobby.Id));
+                }
+            }
+            await ReplyAsync("移動しました", false, builder.Build());
+        }
+
+        [Command("detect"), Summary("現在の画面から認識結果を返し、ユーザーのボイスチャットを遷移させます。ステータスをオフラインにしていないユーザすべてが対象です。(*要相談)")]
         public async Task Capture(
             [Summary("(optional) 推測結果からユーザを移動させる場合はtrue。(default: true)")] bool move = true,
             [Summary("(optional) 切り出す領域を設定します。未指定の場合は成果の良い方を採用。`!pu show config CropOptions`で閲覧できます")] int cropIndex = -1,
@@ -70,14 +106,10 @@ namespace ikanopu.Module {
                 var p = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, $"recognize-[{i}].bmp");
                 sourceMat.SaveImage(p);
             }
-            // Disposeしとく
-            foreach (var r in results) {
-                r.Dispose();
-            }
             // 認識結果の埋め込みを作ってあげる
-            var builder = new EmbedBuilder();
+            var builder1 = new EmbedBuilder();
             foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+                builder1.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
             }
             // 返す
             var message = @"*認識結果*
@@ -87,9 +119,44 @@ namespace ikanopu.Module {
 ※認識結果が異なる場合、現在の画像で追加登録することで認識精度を改善できます。(未検証）
 ";
             if (uploadImage) {
-                await Context.Channel.SendFileAsync(path, message, false, builder.Build());
+                await Context.Channel.SendFileAsync(path, message, false, builder1.Build());
             } else {
-                await ReplyAsync(message, false, builder.Build());
+                await Context.Channel.SendMessageAsync(message, false, builder1.Build());
+            }
+
+            // ボイスチャットを移動させる
+            if (move) {
+                var builder2 = new EmbedBuilder();
+
+                var allUsers =
+                    (await Context.Guild.GetUsersAsync())
+                    .Where(x => x.Status != UserStatus.Offline) // offlineユーザは動かさないであげよう
+                    .ToArray();
+                var targets =
+                    result.RecognizedUsers
+                          .Select(recognized => (recognized, allUsers.FirstOrDefault(u => u.Id == recognized.User.DiscordId)))
+                          .Where(x => x.Item2 != null)
+                          .Select(x => new { Team = x.recognized.Team, GuildUser = x.Item2 })
+                          .ToArray();
+                // 移動させよう
+                var targetChannels = new[]{
+                        (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
+                        (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
+                        (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
+                    }
+                    .Where(x => x.Item2.HasValue);
+                foreach (var (team, vcId) in targetChannels) {
+                    var users = targets.Where(x => x.Team == team);
+                    foreach (var u in users) {
+                        await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
+                    }
+                    //builder2.AddField($"{team}", string.Join("\n", users.Select(x => $"{x.GuildUser.Username}#{x.GuildUser.Discriminator}")));
+                }
+                //await Context.Channel.SendMessageAsync("ボイチャを以下の通り移動させました。", false, builder2.Build());
+            }
+            // Disposeしとく
+            foreach (var r in results) {
+                r.Dispose();
             }
         }
 
