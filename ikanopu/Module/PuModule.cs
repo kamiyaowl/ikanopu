@@ -32,15 +32,15 @@ namespace ikanopu.Module {
             var builder = new EmbedBuilder();
             foreach (var c in CommandService.Commands) {
                 builder.AddField(
-                    c.Aliases.First(),
+                    c.Aliases.First() + " " + string.Join(" ", c.Parameters.Select(x => $"[{x}]")),
                     (c.Summary ?? "no description") + "\n" +
                         string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}"))
                 );
             }
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
-        ///
-        [Command("recognize"), Summary("現在の画面から認識結果を返します")]
+
+        [Command("detect"), Summary("現在の画面から認識結果を返します")]
         public async Task Capture(
             [Summary("切り出す領域を設定します。`!pu show config CropOptions`で閲覧できます")] int cropIndex = 0,
             [Summary("trueの場合、認識に使用した画像もアップロードします")] bool uploadImage = false
@@ -110,9 +110,18 @@ namespace ikanopu.Module {
             }
             await ReplyAsync($"```\n{str}\n```");
         }
-        [Command("echo"), Summary("俺がオウムだ")]
-        public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
-            await ReplyAsync($"\u200B{text}");
+        [Group("debug")]
+        public class DebugModuleL : ModuleBase {
+            [Command("echo"), Summary("俺がオウムだ")]
+            public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
+                await ReplyAsync($"\u200B{text}");
+            }
+
+            [Command("userinfo"), Summary("ユーザー情報を返します")]
+            public async Task UserInfo([Summary("(optional) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
+                var userInfo = user ?? Context.Client.CurrentUser;
+                await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
+            }
         }
     }
 }
