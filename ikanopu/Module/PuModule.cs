@@ -139,6 +139,16 @@ namespace ikanopu.Module {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
             }
+
+            [Command("move"), Summary("ボイスチャンネル移動テスト")]
+            public async Task Move(
+                [Summary("ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user,
+                [Summary("ボイスチャンネルID")] IVoiceChannel vc
+                ) {
+                var guildUser = await Context.Guild.GetUserAsync(user.Id);
+                await guildUser.ModifyAsync(x => x.Channel = Optional.Create(vc));
+            }
+
             [Command("vc users"), Summary("ボイスチャットに参加している、ユーザー情報を返します")]
             public async Task UserInfo() {
                 var channels = await Context.Guild.GetVoiceChannelsAsync();
