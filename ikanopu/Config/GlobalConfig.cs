@@ -42,6 +42,20 @@ namespace ikanopu.Config {
         /// デバッグ用に画像を保存するか
         /// </summary>
         public bool IsSaveDebugImage { get; set; } = true;
+
+        /// <summary>
+        /// Alphaチーム
+        /// </summary>
+        public ulong? AlphaVoiceChannelId { get; set; }
+        /// <summary>
+        /// Bravoチーム
+        /// </summary>
+        public ulong? BravoVoiceChannelId { get; set; }
+        /// <summary>
+        /// ロビー
+        /// </summary>
+        public ulong? LobbyVoiceChannelId { get; set; }
+
         /// <summary>
         /// 切り出す名前の座標設定
         /// </summary>

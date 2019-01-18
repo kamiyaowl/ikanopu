@@ -67,7 +67,7 @@ namespace ikanopu.Module {
                 // 認識結果の埋め込みを作ってあげる
                 var builder = new EmbedBuilder();
                 foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                    builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID: [TODO: here]\nScore: {r.Independency}");
+                    builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
                 }
                 // 返す
                 var message = @"*認識結果*
@@ -127,6 +127,7 @@ namespace ikanopu.Module {
 
         [Group("debug")]
         public class DebugModule : ModuleBase {
+            public ImageProcessingService ImageProcessingService { get; set; }
 
             [Command("echo"), Summary("俺がオウムだ")]
             public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
@@ -137,6 +138,28 @@ namespace ikanopu.Module {
             public async Task UserInfo([Summary("(optional) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
+            }
+            [Command("vc users"), Summary("ボイスチャットに参加している、ユーザー情報を返します")]
+            public async Task UserInfo() {
+                var channels = await Context.Guild.GetVoiceChannelsAsync();
+                var builder = new EmbedBuilder();
+                foreach (var c in channels) {
+                    var users = await c.GetUsersAsync().FlattenAsync();
+                    var header = $"{c.Name}({c.Id})";
+                    if (ImageProcessingService.Config.AlphaVoiceChannelId.GetValueOrDefault() == c.Id) {
+                        header += " [アルファチーム会場]";
+                    }
+                    if (ImageProcessingService.Config.BravoVoiceChannelId.GetValueOrDefault() == c.Id) {
+                        header += " [ブラボーチーム会場]";
+                    }
+                    if (ImageProcessingService.Config.LobbyVoiceChannelId.GetValueOrDefault() == c.Id) {
+                        header += " [ロビー]";
+                    }
+
+                    var body = string.Join("\n", users.Select(x => $"{x.Username}#{x.Discriminator} ({x.Id}) {(ImageProcessingService.Config.RegisterUsers.Any(ru => ru.DiscordId.GetValueOrDefault() == x.Id) ? "[登録済]" : "[未登録]")}"));
+                    builder.AddField(header, body.Length > 0 ? body : "*no user*");
+                }
+                await ReplyAsync("", false, builder.Build());
             }
 
             [Command("clean"), Summary("ikanopuのつぶやきをなかったことにする")]
