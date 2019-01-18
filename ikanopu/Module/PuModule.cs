@@ -126,6 +126,7 @@ namespace ikanopu.Module {
 
         [Group("debug")]
         public class DebugModule : ModuleBase {
+
             [Command("echo"), Summary("俺がオウムだ")]
             public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
                 await ReplyAsync($"\u200B{text}");
@@ -135,6 +136,16 @@ namespace ikanopu.Module {
             public async Task UserInfo([Summary("(optional) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
+            }
+
+            [Command("clean"), Summary("ikanopuのつぶやきをなかったことにする")]
+            public async Task Clean([Summary("上限数")] int limit = 100) {
+                var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
+                var filtered = messages.Where(x => x.Author.Id == Context.Client.CurrentUser.Id);
+                foreach (var m in filtered) {
+                    Console.WriteLine($"MessageMessageAsync: {m}");
+                    await Context.Channel.DeleteMessageAsync(m);
+                }
             }
         }
     }
