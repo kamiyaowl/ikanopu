@@ -98,20 +98,34 @@ namespace ikanopu.Module {
 
             await Context.Channel.SendFileAsync(path, "capture.jpg");
         }
-        [Command("show config"), Summary("config.jsonの内容を表示します")]
-        public async Task ShowConfigRaw([Summary("子要素名、`--all`指定するとすべて表示")] string name) {
-            string str = null;
-            if (name.Equals("--all")) {
-                str = JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.None);
-            } else {
-                dynamic config = ImageProcessingService.Config;
-                var deserialized = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(config));
-                str = JsonConvert.SerializeObject(deserialized[name], Formatting.Indented);
+        [Group("config")]
+        public class ConfigModule : ModuleBase {
+            public ImageProcessingService ImageProcessingService { get; set; }
+
+            [Command("show"), Summary("config.jsonの内容を表示します")]
+            public async Task ShowConfigRaw([Summary("子要素名、`--all`指定するとすべて表示")] string name) {
+                string str = null;
+                if (name.Equals("--all")) {
+                    str = JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.Indented);
+                } else {
+                    dynamic config = ImageProcessingService.Config;
+                    var deserialized = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(config));
+                    str = JsonConvert.SerializeObject(deserialized[name], Formatting.Indented);
+                }
+
+                // 2000文字対策
+                var TEXT_LENGTH_N = 1900;
+                var n = (str.Length / TEXT_LENGTH_N) + 1;
+                for (int i = 0; i < n; ++i) {
+                    var length = (n - 1 == i) ? str.Length % TEXT_LENGTH_N : TEXT_LENGTH_N;
+                    await Context.Channel.SendMessageAsync($"```\n{str.Substring(i * TEXT_LENGTH_N, length)}\n```");
+                }
             }
-            await ReplyAsync($"```\n{str}\n```");
+
         }
+
         [Group("debug")]
-        public class DebugModuleL : ModuleBase {
+        public class DebugModule : ModuleBase {
             [Command("echo"), Summary("俺がオウムだ")]
             public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
                 await ReplyAsync($"\u200B{text}");
