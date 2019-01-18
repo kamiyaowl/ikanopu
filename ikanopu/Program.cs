@@ -30,8 +30,8 @@ namespace ikanopu {
         [STAThread]
         static async Task Main(string[] args) {
             // 設定読み込み
-            using (var config = (File.Exists(CONFIG_PATH)) ? JsonConvert.DeserializeObject<GlobalConfig>(File.ReadAllText(CONFIG_PATH)) : new GlobalConfig()) {
-                var secret = (File.Exists(SECRET_PATH)) ? JsonConvert.DeserializeObject<SecretConfig>(File.ReadAllText(SECRET_PATH)) : new SecretConfig();
+            using (var config = GlobalConfig.PATH.FromJsonFile(() => new GlobalConfig())) {
+                var secret = SecretConfig.PATH.FromJsonFile(() => new SecretConfig());
 
                 #region 前処理
                 if (!Directory.Exists(config.RegisterImageDirectory)) {
@@ -90,8 +90,8 @@ namespace ikanopu {
                 // 終了時にコンフィグを書き直してあげる（バージョンが変わっていたときなど、あるじゃん)
                 config.UpdatedAt = DateTime.Now;
                 secret.UpdatedAt = DateTime.Now;
-                File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(config, Formatting.Indented));
-                File.WriteAllText(SECRET_PATH, JsonConvert.SerializeObject(secret, Formatting.Indented));
+                config.ToJsonFile(GlobalConfig.PATH);
+                secret.ToJsonFile(SecretConfig.PATH);
 
                 Console.WriteLine("config.jsonを更新しました");
                 #endregion

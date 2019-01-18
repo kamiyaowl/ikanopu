@@ -150,6 +150,7 @@
     <Compile Include="Config\GlobalConfig.cs" />
     <Compile Include="Config\SecretConfig.cs" />
     <Compile Include="Core\CropOption.cs" />
+    <Compile Include="Core\Extension.cs" />
     <Compile Include="Core\ImageUtil.cs" />
     <Compile Include="Core\RecognizeResult.cs" />
     <Compile Include="Core\RecognizedUser.cs" />

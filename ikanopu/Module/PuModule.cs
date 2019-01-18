@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ikanopu.Core;
 
 namespace ikanopu.Module {
     [Group("pu"), Alias("ikanopu")]
@@ -84,21 +85,6 @@ namespace ikanopu.Module {
             }
         }
 
-        [Command("capture"), Summary("現在のキャプチャデバイスの画像を取得します")]
-        public async Task Capture() {
-            var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "capture.jpg");
-
-            Mat mat = null;
-            lock (ImageProcessingService.CaptureRawMat) {
-                mat = ImageProcessingService.CaptureRawMat.Clone();
-            }
-            mat.SaveImage(path);
-            mat.Dispose();
-            mat = null;
-
-            await Context.Channel.SendFileAsync(path, "capture.jpg");
-        }
-
         [Group("config")]
         public class ConfigModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
@@ -123,6 +109,16 @@ namespace ikanopu.Module {
                 }
             }
 
+            [Command("sync user"), Summary("RegisterUsersにあるユーザー名をDiscordと同期します")]
+            public async Task SyncUser() {
+                foreach (var ru in ImageProcessingService.Config.RegisterUsers.Where(x => x.DiscordId.HasValue)) {
+                    var user = await Context.Guild.GetUserAsync(ru.DiscordId.Value);
+                    ru.DisplayName = user.Username;
+                }
+                ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
+                await this.ShowConfigRaw("RegisterUsers");
+            }
+
         }
 
         [Group("debug")]
@@ -132,6 +128,21 @@ namespace ikanopu.Module {
             [Command("echo"), Summary("俺がオウムだ")]
             public async Task Echo([Remainder, Summary("適当なテキスト")] string text) {
                 await ReplyAsync($"\u200B{text}");
+            }
+
+            [Command("capture"), Summary("現在のキャプチャデバイスの画像を取得します")]
+            public async Task Capture() {
+                var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "capture.jpg");
+
+                Mat mat = null;
+                lock (ImageProcessingService.CaptureRawMat) {
+                    mat = ImageProcessingService.CaptureRawMat.Clone();
+                }
+                mat.SaveImage(path);
+                mat.Dispose();
+                mat = null;
+
+                await Context.Channel.SendFileAsync(path, "capture.jpg");
             }
 
             [Command("userinfo"), Summary("ユーザー情報を返します")]

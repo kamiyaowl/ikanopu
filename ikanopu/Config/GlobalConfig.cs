@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ikanopu.Config {
     public class GlobalConfig : IDisposable {
+        public static readonly string PATH = "config.json";
         /// <summary>
         /// キャプチャデバイスのインデックス
         /// </summary>
