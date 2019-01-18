@@ -126,7 +126,7 @@ namespace ikanopu.Module {
 
             // ボイスチャットを移動させる
             if (move) {
-                var builder2 = new EmbedBuilder();
+                //var builder2 = new EmbedBuilder();
 
                 var allUsers =
                     (await Context.Guild.GetUsersAsync())
