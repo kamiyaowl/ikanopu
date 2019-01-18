@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using OpenCvSharp.Extensions;
 
 namespace ikanopu.Core {
     /// <summary>
@@ -12,6 +14,23 @@ namespace ikanopu.Core {
     /// 返却するMatの破棄は、呼び出し元が責任をもって
     /// </summary>
     public static class ImageUtil {
+        /// <summary>
+        /// System.Drawingの支援を受け、日本語を書く
+        /// あんまはやくないけどまぁいいや
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="text"></param>
+        /// <param name=""></param>
+        public static void PutTextExtra(this Mat src, Font font, Brush brush, int x, int y, string text) {
+            using (var bmp = src.ToBitmap())
+            using (var g = Graphics.FromImage(bmp)) {
+                g.DrawString(text, font, brush, x, y);
+
+                using (var mat = bmp.ToMat()) {
+                    src[0, src.Rows, 0, src.Cols] = mat;
+                }
+            }
+        }
         /// <summary>
         /// 画像切り抜きのプレビューを表示します。デバッグ用
         /// </summary>
@@ -27,19 +46,23 @@ namespace ikanopu.Core {
                     recs.Add(index, str);
                 }
             }
+            var font = new Font("MS UI Gothic", 20);
 
-            int i = 0;
-            foreach (var (team, rect) in src) {
+            foreach (var ((team, rect), i) in src.Select((x, i) => (x, i))) {
                 Scalar color;
+                Brush brush;
                 switch (team) {
                     case CropOption.Team.Alpha:
                         color = Scalar.Green;
+                        brush = Brushes.Green;
                         break;
                     case CropOption.Team.Bravo:
                         color = Scalar.Red;
+                        brush = Brushes.Red;
                         break;
                     case CropOption.Team.Watcher:
                         color = Scalar.White;
+                        brush = Brushes.White;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -47,15 +70,12 @@ namespace ikanopu.Core {
 
                 // 認識領域を書く
                 mat.Rectangle(rect, color);
-                // Indexを書く
-                mat.PutText($"[{i}]", rect.TopLeft, HersheyFonts.HersheyComplex, 0.8, Scalar.White, 1, LineTypes.AntiAlias, false);
                 // 認識結果を書く
                 if (recs.ContainsKey(i)) {
-                    mat.PutText(recs[i], rect.BottomRight, HersheyFonts.HersheyComplex, 0.8, color, 1, LineTypes.AntiAlias, false);
+                    mat.PutTextExtra(font, brush, rect.BottomRight.X, rect.BottomRight.Y, $"[{i}]: {recs[i]}");
                 } else {
-                    mat.PutText("*unregistered*", rect.BottomRight, HersheyFonts.HersheyComplex, 0.8, color, 1, LineTypes.AntiAlias, false);
+                    mat.PutTextExtra(font, brush, rect.BottomRight.X, rect.BottomRight.Y, $"[{i}]: [未登録/未検出]");
                 }
-                i++;
             }
         }
         /// <summary>

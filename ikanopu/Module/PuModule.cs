@@ -98,6 +98,7 @@ namespace ikanopu.Module {
 
             await Context.Channel.SendFileAsync(path, "capture.jpg");
         }
+
         [Group("config")]
         public class ConfigModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
