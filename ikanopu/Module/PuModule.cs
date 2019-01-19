@@ -172,43 +172,67 @@ namespace ikanopu.Module {
             public ImageProcessingService ImageProcessingService { get; set; }
 
             [Command, Summary("画像とDiscord Userの関連付けを追加します")]
-            [Alias("add")]
+            [Alias("add", "create")]
             public async Task Add() {
 
             }
-            [Command("show images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
-            public async Task ShowImage(
-                [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
-                ) {
-                var files = Directory.GetFiles(ImageProcessingService.Config.TemporaryDirectory, "recognize-*");
-                var rawFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
-                var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
-                if (files.Length == 0) {
-                    string message = $"現在利用可能な画像がありません。`!pu detect`を実行することで切り抜いた画像をローカルにキャッシュすることができます";
-                    await base.ReplyAsync(message);
-                    return;
-                }
-                // オリジナル画像をアップしとく
-                if (File.Exists(rawFilePath)) {
-                    await Context.Channel.SendFileAsync(rawFilePath, $"元画像");
-                }
-                // recognize-[i].bmpを順にアップしていく
-                foreach (var (f, i) in files.Select((x, i) => (x, i))) {
-                    string path;
-                    if (useBitmap) {
-                        path = f;
-                    } else {
-                        // bitmapはプレビューが生成されないらしいので
-                        using (var mat = new Mat(f)) {
-                            mat.SaveImage(tmpFilePath);
-                        }
-                        path = tmpFilePath;
-                    }
-                    await Context.Channel.SendFileAsync(path, $"この画像で登録する場合は、`!pu register [Discordユーザ名 or ID] {i}`を実行します");
-                }
+            [Command("remove"), Summary("画像とDiscord Userの関連付けを削除します")]
+            [Alias("delete", "rm", "del")]
+            public async Task Remove() {
 
             }
 
+            [Group("show")]
+            public class ShowModule : ModuleBase {
+                public ImageProcessingService ImageProcessingService { get; set; }
+                [Command, Summary("登録済一覧を表示します")]
+                [Alias("registered")]
+                public async Task Registered(
+                    [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false
+                    ) {
+                    foreach (var (ru, i) in ImageProcessingService.Config.RegisterUsers.Select((x, i) => (x, i))) {
+                        var message = $"*[{i}] {ru.DisplayName}({ru.DiscordId})*\n{ru.ImagePath}\n※この登録を削除する場合は、`!pu register remove {i}`を実行します";
+                        if (showImage) {
+                            await Context.Channel.SendFileAsync(ru.ImagePath, message);
+                        } else {
+                            await Context.Channel.SendMessageAsync(message);
+                        }
+                    }
+                }
+
+                [Command("show images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
+                public async Task Images(
+                [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+                ) {
+                    var files = Directory.GetFiles(ImageProcessingService.Config.TemporaryDirectory, "recognize-*");
+                    var rawFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
+                    var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
+                    if (files.Length == 0) {
+                        string message = $"現在利用可能な画像がありません。`!pu detect`を実行することで切り抜いた画像をローカルにキャッシュすることができます";
+                        await base.ReplyAsync(message);
+                        return;
+                    }
+                    // オリジナル画像をアップしとく
+                    if (File.Exists(rawFilePath)) {
+                        await Context.Channel.SendFileAsync(rawFilePath, $"元画像");
+                    }
+                    // recognize-[i].bmpを順にアップしていく
+                    foreach (var (f, i) in files.Select((x, i) => (x, i))) {
+                        string path;
+                        if (useBitmap) {
+                            path = f;
+                        } else {
+                            // bitmapはプレビューが生成されないらしいので
+                            using (var mat = new Mat(f)) {
+                                mat.SaveImage(tmpFilePath);
+                            }
+                            path = tmpFilePath;
+                        }
+                        await Context.Channel.SendFileAsync(path, $"この画像で登録する場合は、`!pu register [Discordユーザ名 or ID] {i}`を実行します");
+                    }
+
+                }
+            }
 
         }
 
