@@ -225,7 +225,7 @@ namespace ikanopu.Module {
             }
 
             [Group("show")]
-            [Alias("r")]
+            [Alias("s")]
             public class ShowModule : ModuleBase {
                 public ImageProcessingService ImageProcessingService { get; set; }
                 [Command("now"), Summary("登録済一覧を表示します")]
