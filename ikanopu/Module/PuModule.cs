@@ -222,8 +222,8 @@ namespace ikanopu.Module {
             [Group("show")]
             public class ShowModule : ModuleBase {
                 public ImageProcessingService ImageProcessingService { get; set; }
-                [Command, Summary("登録済一覧を表示します")]
-                [Alias("registered")]
+                [Command("now"), Summary("登録済一覧を表示します")]
+                [Alias("registered", "current")]
                 public async Task Registered(
                     [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false,
                     [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
@@ -314,9 +314,12 @@ namespace ikanopu.Module {
                 ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
                 await this.ShowConfigRaw("RegisterUsers");
             }
-
         }
 
+        [Group("extra")]
+        public class ExtraModule : ModuleBase {
+
+        }
         [Group("debug")]
         public class DebugModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
@@ -381,13 +384,61 @@ namespace ikanopu.Module {
                 await ReplyAsync("", false, builder.Build());
             }
 
-            [Command("clean"), Summary("ikanopuのつぶやきをなかったことにする")]
-            public async Task Clean([Summary("(optional: 100) 遡って削除する上限数")] int limit = 100) {
-                var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
-                var filtered = messages.Where(x => x.Author.Id == Context.Client.CurrentUser.Id);
-                foreach (var m in filtered) {
-                    Console.WriteLine($"MessageMessageAsync: {m}");
-                    await Context.Channel.DeleteMessageAsync(m);
+            [Group("clean")]
+            public class CleanModule : ModuleBase {
+                public ImageProcessingService ImageProcessingService { get; set; }
+
+                [Command("images"), Summary("登録されていない画像キャッシュを削除します")]
+                public async Task Images(
+                    [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false
+                    ) {
+                    var targets = Directory.GetFiles(ImageProcessingService.Config.RegisterImageDirectory);
+                    var useFiles =
+                        ImageProcessingService.Config
+                                              .RegisterUsers
+                                              .Select(x => x.ImagePath)
+                                              .Select(x => Path.GetFileName(x))
+                                              .ToArray();
+
+                    var sb = new StringBuilder();
+                    sb.AppendLine("削除対象");
+                    if (!delete) {
+                        sb.AppendLine("※本当に削除する場合は`!pu debug clean images true`を実行してください。");
+                    }
+                    foreach (var filePath in targets) {
+                        // ファイル名で比較して、使ってれば無視
+                        var filename = Path.GetFileName(filePath);
+                        if (useFiles.Contains(filename)) continue;
+
+                        sb.AppendLine(filePath);
+                        if (delete) {
+                            File.Delete(filePath);
+                        }
+                    }
+                    await ReplyAsync(sb.ToString());
+                }
+
+                [Command("posts"), Summary("ikanopuのつぶやきをなかったことにする")]
+                public async Task Post(
+                    [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false,
+                    [Summary("(optional: 100) 遡って削除する上限数")] int limit = 100
+                    ) {
+                    var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
+                    var filtered = messages.Where(x => x.Author.Id == Context.Client.CurrentUser.Id);
+
+                    var sb = new StringBuilder("削除対象\n本当に削除する場合は`!pu debug clean posts true`を実行してください。");
+                    foreach (var m in filtered) {
+                        Console.WriteLine($"[{DateTime.Now}] MessageMessageAsync: {m}");
+                        if (delete) {
+                            await Context.Channel.DeleteMessageAsync(m);
+                        } else {
+                            sb.AppendLine($"[{m.CreatedAt}] {m.Content}");
+                        }
+                    }
+                    // deleteしない場合はメッセージを出す
+                    if (!delete) {
+                        await ReplyAsync(sb.ToString());
+                    }
                 }
             }
         }
