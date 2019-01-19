@@ -178,8 +178,23 @@ namespace ikanopu.Module {
             }
             [Command("remove"), Summary("画像とDiscord Userの関連付けを削除します")]
             [Alias("delete", "rm", "del")]
-            public async Task Remove() {
+            public async Task Remove(
+                    [Summary("削除するインデックス。必ず`!pu register show`で確認してください。")] int index,
+                    [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false
+                ) {
+                if (index < 0 || index >= ImageProcessingService.Config.RegisterUsers.Count) {
+                    await ReplyAsync($"インデックスの値が不正です。[0-{ImageProcessingService.Config.RegisterUsers.Count - 1}]の範囲で指定してください。");
+                    return;
+                }
+                var target = ImageProcessingService.Config.RegisterUsers[index];
+                if (!delete) {
+                    await ReplyAsync($"まだ消してません。内容確認して問題なければ、\n`!pu register remove {index} true`で削除することができます。\n```\n{JsonConvert.SerializeObject(target, Formatting.Indented)}\n```");
+                    return;
+                }
+                ImageProcessingService.Config.RegisterUsers.RemoveAt(index);
+                ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
 
+                await ReplyAsync($"次のユーザを削除しました。\n```\n{JsonConvert.SerializeObject(target, Formatting.Indented)}\n```");
             }
 
             [Group("show")]
@@ -190,7 +205,6 @@ namespace ikanopu.Module {
                 public async Task Registered(
                     [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false,
                     [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
-
                     ) {
                     var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
 
@@ -209,9 +223,9 @@ namespace ikanopu.Module {
                     }
                 }
 
-                [Command("show images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
+                [Command("images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
                 public async Task Images(
-                [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+                    [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
                 ) {
                     var files = Directory.GetFiles(ImageProcessingService.Config.TemporaryDirectory, "recognize-*");
                     var rawFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
