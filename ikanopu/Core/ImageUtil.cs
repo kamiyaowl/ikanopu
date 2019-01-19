@@ -255,6 +255,7 @@ namespace ikanopu.Core {
                 return new RecognizeResult() {
                     IsInvalid = true,
                     InvalidMessage = "誰も認識できませんでした",
+                    SourceMats = postMats.Select(x => x.Item2).ToArray(),
                 };
             }
             // 複数のプレイヤーが同じ場所を見ていた場合の修正

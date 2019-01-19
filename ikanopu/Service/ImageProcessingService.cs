@@ -109,11 +109,14 @@ namespace ikanopu.Service {
         /// <summary>
         /// 指定されたインデックス全部やる
         /// </summary>
-        /// <param name="indexes"></param>
+        /// <param name="indexes">くり抜き領域として使用するインデックス</param>
+        /// <param name="preFiltering">認識数0等を事前に弾く場合はtrue</param>
         /// <returns></returns>
-        public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes) {
+        public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes, bool preFiltering = true) {
             var results = await Task.WhenAll(indexes.Select(x => RecognizeAsync(x)));
-            return results.Where(x => (x.RecognizedUsers?.Length ?? 0) > 0).OrderByDescending(x => x.Score).ToArray();
+            return results.Where(x => (!preFiltering) || (x.RecognizedUsers?.Length ?? 0) > 0)
+                          .OrderByDescending(x => x.Score)
+                          .ToArray();
         }
 
         #region IDisposable Support

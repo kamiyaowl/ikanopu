@@ -80,15 +80,21 @@ namespace ikanopu.Module {
         public async Task Capture(
             [Summary("(optional: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
             [Summary("(optional: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
-            [Summary("(optional: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true
+            [Summary("(optional: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true,
+            [Summary("(optional: true) 認識できなかった結果を破棄する場合はtrue")] bool preFilter = true
             ) {
             var rawPath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
+            // cropIndexの領域確認
+            if (cropIndex > -1 && cropIndex >= ImageProcessingService.Config.CropOptions.Length) {
+                await ReplyAsync($"cropIndexが設定不可能な値です。0-{ImageProcessingService.Config.CropOptions.Length}までの値を指定してください。");
+                return;
+            }
             // とりあえず認識してあげる
             var targetIndexes = cropIndex == -1 ? Enumerable.Range(0, ImageProcessingService.Config.CropOptions.Length) : new[] { cropIndex };
-            var results = await ImageProcessingService.RecognizeAllAsync(targetIndexes);
+            var results = await ImageProcessingService.RecognizeAllAsync(targetIndexes, preFilter);
             if (results.Length == 0) {
-                await ReplyAsync("結果を生成しませんでした");
+                await ReplyAsync($"正常に認識することができませんでした。\nデバッグ目的やまだ1人も登録していない場合に登録用の画像を生成したい場合は\n`!pu detect false [cropIndex] true false`\nを試してください。");
                 return;
             }
             var result = results.First();
@@ -108,53 +114,69 @@ namespace ikanopu.Module {
                 var p = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, $"recognize-[{i}].bmp");
                 sourceMat.SaveImage(p);
             }
+
             // 認識結果の埋め込みを作ってあげる
             var builder = new EmbedBuilder();
-            foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+            // 認識失敗だけどpreFilter切っている場合などはここで終わり
+            if (!result.IsInvalid && (result.RecognizedUsers?.Length ?? 0) > 0) {
+                foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
+                    builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+                }
+                // ボイスチャットを移動させる
+                if (move) {
+                    var allUsers =
+                        (await Context.Guild.GetUsersAsync())
+                        .Where(x => x.Status != UserStatus.Offline) // offlineユーザは動かさないであげよう
+                        .ToArray();
+                    var targets =
+                        result.RecognizedUsers
+                              .Select(recognized => (recognized, allUsers.FirstOrDefault(u => u.Id == recognized.User.DiscordId)))
+                              .Where(x => x.Item2 != null)
+                              .Select(x => new { Team = x.recognized.Team, GuildUser = x.Item2 })
+                              .ToArray();
+                    // 移動させよう
+                    var targetChannels = new[]{
+                        (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
+                        (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
+                        (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
+                    }
+                        .Where(x => x.Item2.HasValue);
+                    foreach (var (team, vcId) in targetChannels) {
+                        var users = targets.Where(x => x.Team == team);
+                        foreach (var u in users) {
+                            await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
+                        }
+                    }
+                }
+                // Disposeしとく
+                foreach (var r in results) {
+                    r.Dispose();
+                }
             }
+
+            // 結果を返す
             // 返す
             var message = @"*認識結果*
 
 登録されてないユーザは以下のコマンドで登録できます。
 `!pu register [Discord IDもしくは表示名] [登録したい名前の横に書かれた数字]`
 ";
-            // ボイスチャットを移動させる
-            if (move) {
-                var allUsers =
-                    (await Context.Guild.GetUsersAsync())
-                    .Where(x => x.Status != UserStatus.Offline) // offlineユーザは動かさないであげよう
-                    .ToArray();
-                var targets =
-                    result.RecognizedUsers
-                          .Select(recognized => (recognized, allUsers.FirstOrDefault(u => u.Id == recognized.User.DiscordId)))
-                          .Where(x => x.Item2 != null)
-                          .Select(x => new { Team = x.recognized.Team, GuildUser = x.Item2 })
-                          .ToArray();
-                // 移動させよう
-                var targetChannels = new[]{
-                        (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
-                        (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
-                        (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
-                    }
-                    .Where(x => x.Item2.HasValue);
-                foreach (var (team, vcId) in targetChannels) {
-                    var users = targets.Where(x => x.Team == team);
-                    foreach (var u in users) {
-                        await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
-                    }
-                }
-            }
-            // Disposeしとく
-            foreach (var r in results) {
-                r.Dispose();
-            }
-            // 結果を返す
             if (uploadImage) {
                 await Context.Channel.SendFileAsync(path, message, false, builder.Build());
             } else {
                 await Context.Channel.SendMessageAsync(message, false, builder.Build());
             }
+        }
+        [Group("register")]
+        public class RegisterModule : ModuleBase {
+            public ImageProcessingService ImageProcessingService { get; set; }
+
+            [Command, Summary("コマンド一覧を表示")]
+            [Alias("add")]
+            public async Task Add() {
+
+            }
+
         }
 
         [Group("config")]
