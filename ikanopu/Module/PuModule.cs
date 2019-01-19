@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ikanopu.Core;
 using static ikanopu.Core.CropOption;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace ikanopu.Module {
     [Group("pu"), Alias("ikanopu")]
@@ -42,6 +44,7 @@ namespace ikanopu.Module {
         }
 
         [Command("lobby"), Summary("ボイスチャット参加者をロビーに集めます。\nアルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です")]
+        [Alias("l")]
         public async Task Lobby() {
             var vcs = await Context.Guild.GetVoiceChannelsAsync();
             var targetChannels = new[]{
@@ -77,6 +80,7 @@ namespace ikanopu.Module {
         }
 
         [Command("detect"), Summary("画像認識を行いボイスチャットを遷移させます。\nステータスをオフラインにしていないユーザすべてが対象です。")]
+        [Alias("d")]
         public async Task Capture(
             [Summary("(optional: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
             [Summary("(optional: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
@@ -168,6 +172,7 @@ namespace ikanopu.Module {
             }
         }
         [Group("register")]
+        [Alias("r")]
         public class RegisterModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
 
@@ -220,6 +225,7 @@ namespace ikanopu.Module {
             }
 
             [Group("show")]
+            [Alias("r")]
             public class ShowModule : ModuleBase {
                 public ImageProcessingService ImageProcessingService { get; set; }
                 [Command("now"), Summary("登録済一覧を表示します")]
@@ -282,6 +288,7 @@ namespace ikanopu.Module {
         }
 
         [Group("config")]
+        [Alias("c")]
         public class ConfigModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
 
@@ -316,10 +323,37 @@ namespace ikanopu.Module {
             }
         }
 
-        [Group("extra")]
-        public class ExtraModule : ModuleBase {
+        [Command("random"), Summary("ステージとルールに悩んだらこれ")]
+        [Alias("r")]
+        public async Task Random(
+            [Summary("(option: false) ナワバリバトルを含める場合はtrue")] bool nawabari = false
+            ) {
+            var rules = new List<string>() {
+                "ガチエリア",
+                "ガチホコ",
+                "ガチヤグラ",
+                "ガチアサリ",
+            };
+            if (nawabari) {
+                rules.Add("ナワバリ");
+            }
+            var r = new Random();
 
+            var c = new HttpClient();
+            var json = await c.GetStringAsync("https://stat.ink/api/v2/stage");
+            var stagesJson = JsonConvert.DeserializeObject(json) as JArray;
+            var stages = stagesJson?.Select(x => x["name"]["ja_JP"]?.Value).ToArray();
+            if (stages == null) {
+                await ReplyAsync("正常に取得できませんでした");
+                return;
+            }
+            var stage = stages[r.Next(stages.Length)];
+            var rule = rules[r.Next(rules.Count)];
+
+            await ReplyAsync($"{stage} {rule}");
         }
+
+
         [Group("debug")]
         public class DebugModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
