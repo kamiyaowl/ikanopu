@@ -70,7 +70,10 @@ namespace ikanopu.Core {
         /// </summary>
         /// <param name="basePath"></param>
         /// <param name="postMat"></param>
-        public RegisterUser(string basePath, Mat postMat) {
+        public RegisterUser(string basePath, Mat postMat, Discord.IUser user) {
+            this.DiscordId = user.Id;
+            this.DisplayName = user.Username;
+
             string path = GeneratePath(basePath);
             postMat.SaveImage(path);
             ImagePath = path;

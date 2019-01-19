@@ -173,9 +173,31 @@ namespace ikanopu.Module {
 
             [Command, Summary("画像とDiscord Userの関連付けを追加します")]
             [Alias("add", "create")]
-            public async Task Add() {
+            public async Task Add(
+                    [Summary("追加するユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)")] IUser user,
+                    [Summary("削除するインデックス。必ず`!pu register show`で確認してください。")] int index
+                ) {
+                var srcPath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, $"recognize-[{index}].bmp");
+                var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
+                if (user.IsBot || user.IsWebhook) {
+                    await ReplyAsync("BotおよびWebhook Userは登録できません");
+                    return;
+                }
+                if (!File.Exists(srcPath)) {
+                    await ReplyAsync("指定されたインデックスの画像が存在しません");
+                }
+                RegisterUser ru;
+                using (var mat = new Mat(srcPath)) {
+                    ru = new RegisterUser(ImageProcessingService.Config.RegisterImageDirectory, mat, user);
+                    mat.SaveImage(tmpFilePath);
+                }
+                ImageProcessingService.Config.RegisterUsers.Add(ru);
+                ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
 
+                // 登録できたので画像とJson返しとく
+                await Context.Channel.SendFileAsync(tmpFilePath, $"以下のユーザを登録しました\n```\n{JsonConvert.SerializeObject(ru, Formatting.Indented)}\n```");
             }
+
             [Command("remove"), Summary("画像とDiscord Userの関連付けを削除します")]
             [Alias("delete", "rm", "del")]
             public async Task Remove(
@@ -320,7 +342,9 @@ namespace ikanopu.Module {
             }
 
             [Command("userinfo"), Summary("ユーザー情報を返します")]
-            public async Task UserInfo([Summary("(optional: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
+            public async Task UserInfo(
+                [Summary("(optional: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null
+                ) {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
             }
