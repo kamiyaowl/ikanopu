@@ -26,6 +26,13 @@ namespace ikanopu {
 
         [STAThread]
         static async Task Main(string[] args) {
+            Console.WriteLine("#################################################");
+            Console.WriteLine("#                                               #");
+            Console.WriteLine("#                    ikanopu                    #");
+            Console.WriteLine("#   url: https://github.com/kamiyaowl/ikanopu   #");
+            Console.WriteLine("#                                               #");
+            Console.WriteLine("#################################################");
+            Console.WriteLine();
             // 設定読み込み
             using (var config = GlobalConfig.PATH.FromJsonFile(() => new GlobalConfig())) {
                 var secret = SecretConfig.PATH.FromJsonFile(() => new SecretConfig());
@@ -91,17 +98,29 @@ namespace ikanopu {
                 secret.ToJsonFile(SecretConfig.PATH);
 
                 Console.WriteLine($"[{DateTime.Now}] config.jsonを更新しました");
+
+                await discord.StopAsync();
+                Console.WriteLine($"[{DateTime.Now}] Discordの通信を切断しました");
+
+                GC.Collect();
+                Console.WriteLine($"[{DateTime.Now}] コンソールを閉じて終了します");
                 #endregion
             }
         }
-
+        /// <summary>
+        /// 登録画像がすべて存在するか確認します
+        /// </summary>
+        /// <param name="config"></param>
         private static void CheckRegisterUserImage(GlobalConfig config) {
             foreach (var ru in config.RegisterUsers.Where(x => !File.Exists(x.ImagePath))) {
                 Console.WriteLine($"Error: {ru.DisplayName}の画像({ru.ImagePath})が参照できませんでした");
                 Environment.Exit(1);
             }
         }
-
+        /// <summary>
+        /// ディスコードのトークンがない場合に登録させます
+        /// </summary>
+        /// <param name="secret"></param>
         private static void CheckDiscordTokenSecret(SecretConfig secret) {
             if (string.IsNullOrWhiteSpace(secret.DiscordToken)) {
                 Console.WriteLine("DiscordのBot用のトークンを入力してください(secret.jsonに保存されるだけなので心配しないで");
@@ -111,12 +130,20 @@ namespace ikanopu {
                 secret.ToJsonFile(SecretConfig.PATH);
             }
         }
-
+        /// <summary>
+        /// Discordのログ出力
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         private static Task Client_Log(Discord.LogMessage message) {
-            Console.WriteLine(message.ToString());
+            Console.WriteLine($"[{DateTime.Now}] {message.Message}");
             return Task.CompletedTask;
         }
-
+        /// <summary>
+        /// メッセージ受信時に、Userから発行されたコマンドであれば実行します
+        /// </summary>
+        /// <param name="socketMessage"></param>
+        /// <returns></returns>
         private static async Task Client_MessageReceived(SocketMessage socketMessage) {
             var message = socketMessage as SocketUserMessage;
             Console.WriteLine($"[{DateTime.Now}] #{message.Channel.Name}{message.Author.Username}#{message.Author.Discriminator}: {message}");

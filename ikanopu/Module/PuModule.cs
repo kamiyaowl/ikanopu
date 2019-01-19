@@ -188,12 +188,21 @@ namespace ikanopu.Module {
                 [Command, Summary("登録済一覧を表示します")]
                 [Alias("registered")]
                 public async Task Registered(
-                    [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false
+                    [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false,
+                    [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+
                     ) {
+                    var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
+
                     foreach (var (ru, i) in ImageProcessingService.Config.RegisterUsers.Select((x, i) => (x, i))) {
                         var message = $"*[{i}] {ru.DisplayName}({ru.DiscordId})*\n{ru.ImagePath}\n※この登録を削除する場合は、`!pu register remove {i}`を実行します";
                         if (showImage) {
-                            await Context.Channel.SendFileAsync(ru.ImagePath, message);
+                            string path = ru.ImagePath;
+                            if (!useBitmap) {
+                                ru.PreLoadImage.SaveImage(tmpFilePath);
+                                path = tmpFilePath;
+                            }
+                            await Context.Channel.SendFileAsync(path, message);
                         } else {
                             await Context.Channel.SendMessageAsync(message);
                         }
