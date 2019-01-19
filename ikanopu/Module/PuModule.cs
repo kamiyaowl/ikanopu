@@ -171,11 +171,44 @@ namespace ikanopu.Module {
         public class RegisterModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
 
-            [Command, Summary("コマンド一覧を表示")]
+            [Command, Summary("画像とDiscord Userの関連付けを追加します")]
             [Alias("add")]
             public async Task Add() {
 
             }
+            [Command("show images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
+            public async Task ShowImage(
+                [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+                ) {
+                var files = Directory.GetFiles(ImageProcessingService.Config.TemporaryDirectory, "recognize-*");
+                var rawFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
+                var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
+                if (files.Length == 0) {
+                    string message = $"現在利用可能な画像がありません。`!pu detect`を実行することで切り抜いた画像をローカルにキャッシュすることができます";
+                    await base.ReplyAsync(message);
+                    return;
+                }
+                // オリジナル画像をアップしとく
+                if (File.Exists(rawFilePath)) {
+                    await Context.Channel.SendFileAsync(rawFilePath, $"元画像");
+                }
+                // recognize-[i].bmpを順にアップしていく
+                foreach (var (f, i) in files.Select((x, i) => (x, i))) {
+                    string path;
+                    if (useBitmap) {
+                        path = f;
+                    } else {
+                        // bitmapはプレビューが生成されないらしいので
+                        using (var mat = new Mat(f)) {
+                            mat.SaveImage(tmpFilePath);
+                        }
+                        path = tmpFilePath;
+                    }
+                    await Context.Channel.SendFileAsync(path, $"この画像で登録する場合は、`!pu register [Discordユーザ名 or ID] {i}`を実行します");
+                }
+
+            }
+
 
         }
 
