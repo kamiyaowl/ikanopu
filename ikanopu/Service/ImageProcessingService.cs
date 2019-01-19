@@ -62,7 +62,7 @@ namespace ikanopu.Service {
 
                         Task.Delay(Config.CaptureDelayMs);
                     }
-                    Console.WriteLine("ImageProcessingService#CaptureAsync() Canceled");
+                    Console.WriteLine($"[{DateTime.Now}] ImageProcessingService#CaptureAsync() Canceled");
                 }
             }, cancellationToken);
         }
@@ -113,7 +113,7 @@ namespace ikanopu.Service {
         /// <returns></returns>
         public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes) {
             var results = await Task.WhenAll(indexes.Select(x => RecognizeAsync(x)));
-            return results.OrderByDescending(x => x.Score).ToArray();
+            return results.Where(x => (x.RecognizedUsers?.Length ?? 0) > 0).OrderByDescending(x => x.Score).ToArray();
         }
 
         #region IDisposable Support

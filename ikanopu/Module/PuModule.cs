@@ -21,14 +21,13 @@ namespace ikanopu.Module {
         public CommandService CommandService { get; set; }
         public ImageProcessingService ImageProcessingService { get; set; }
 
-        [Command, Summary("コマンド一覧を表示します")]
+        [Command, Summary("コマンド一覧を表示")]
         [Alias("help")]
         public async Task Help() {
             var sb = new StringBuilder();
             sb.AppendLine("*ikanopu(beta)*");
-            sb.AppendLine("プライベートマッチの音声チャンネル遷移を自動でやってくれるかも");
             sb.AppendLine();
-            sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます");
+            sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます。詳細は実装を参照。");
             sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs");
 
             var builder = new EmbedBuilder();
@@ -42,7 +41,7 @@ namespace ikanopu.Module {
             await ReplyAsync(sb.ToString(), false, builder.Build());
         }
 
-        [Command("lobby"), Summary("みんなをロビーに集めます。アルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です")]
+        [Command("lobby"), Summary("ボイスチャット参加者をロビーに集めます。\nアルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です")]
         public async Task Lobby() {
             var vcs = await Context.Guild.GetVoiceChannelsAsync();
             var targetChannels = new[]{
@@ -56,7 +55,7 @@ namespace ikanopu.Module {
                 .ToDictionary(x => x.Item1, x => x.Item2);
 
             if (!targetChannels.ContainsKey(Team.Watcher)) {
-                await ReplyAsync("LobbyVoiceChannelIdが未登録です");
+                await ReplyAsync("[Error] LobbyVoiceChannelIdが未登録か無効です");
                 return;
             }
             var lobby = targetChannels[Team.Watcher];
@@ -74,15 +73,16 @@ namespace ikanopu.Module {
                     await u.ModifyAsync(x => x.ChannelId = Optional.Create(lobby.Id));
                 }
             }
-            await ReplyAsync("移動しました", false, builder.Build());
+            await ReplyAsync("以下の通り移動しました", false, builder.Build());
         }
 
-        [Command("detect"), Summary("現在の画面から認識結果を返し、ユーザーのボイスチャットを遷移させます。ステータスをオフラインにしていないユーザすべてが対象です。(*要相談)")]
+        [Command("detect"), Summary("画像認識を行いボイスチャットを遷移させます。\nステータスをオフラインにしていないユーザすべてが対象です。")]
         public async Task Capture(
-            [Summary("(optional) 推測結果からユーザを移動させる場合はtrue。(default: true)")] bool move = true,
-            [Summary("(optional) 切り出す領域を設定します。未指定の場合は成果の良い方を採用。`!pu show config CropOptions`で閲覧できます")] int cropIndex = -1,
-            [Summary("(optional) trueの場合、認識に使用した画像もアップロードします")] bool uploadImage = true
+            [Summary("(optional: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
+            [Summary("(optional: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
+            [Summary("(optional: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true
             ) {
+            var rawPath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
             // とりあえず認識してあげる
             var targetIndexes = cropIndex == -1 ? Enumerable.Range(0, ImageProcessingService.Config.CropOptions.Length) : new[] { cropIndex };
@@ -97,6 +97,8 @@ namespace ikanopu.Module {
             lock (ImageProcessingService.CaptureRawMat) {
                 mat = ImageProcessingService.CaptureRawMat.Clone();
             }
+            mat.SaveImage(rawPath);
+            // 認識結果を書き込む
             result.DrawPreview(mat);
             mat.SaveImage(path);
             mat.Dispose();
@@ -107,27 +109,18 @@ namespace ikanopu.Module {
                 sourceMat.SaveImage(p);
             }
             // 認識結果の埋め込みを作ってあげる
-            var builder1 = new EmbedBuilder();
+            var builder = new EmbedBuilder();
             foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                builder1.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+                builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
             }
             // 返す
             var message = @"*認識結果*
 
-現在登録されてないユーザは以下のコマンドで登録できます。
+登録されてないユーザは以下のコマンドで登録できます。
 `!pu register [Discord IDもしくは表示名] [登録したい名前の横に書かれた数字]`
-※認識結果が異なる場合、現在の画像で追加登録することで認識精度を改善できます。(未検証）
 ";
-            if (uploadImage) {
-                await Context.Channel.SendFileAsync(path, message, false, builder1.Build());
-            } else {
-                await Context.Channel.SendMessageAsync(message, false, builder1.Build());
-            }
-
             // ボイスチャットを移動させる
             if (move) {
-                //var builder2 = new EmbedBuilder();
-
                 var allUsers =
                     (await Context.Guild.GetUsersAsync())
                     .Where(x => x.Status != UserStatus.Offline) // offlineユーザは動かさないであげよう
@@ -150,13 +143,17 @@ namespace ikanopu.Module {
                     foreach (var u in users) {
                         await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
                     }
-                    //builder2.AddField($"{team}", string.Join("\n", users.Select(x => $"{x.GuildUser.Username}#{x.GuildUser.Discriminator}")));
                 }
-                //await Context.Channel.SendMessageAsync("ボイチャを以下の通り移動させました。", false, builder2.Build());
             }
             // Disposeしとく
             foreach (var r in results) {
                 r.Dispose();
+            }
+            // 結果を返す
+            if (uploadImage) {
+                await Context.Channel.SendFileAsync(path, message, false, builder.Build());
+            } else {
+                await Context.Channel.SendMessageAsync(message, false, builder.Build());
             }
         }
 
@@ -184,7 +181,7 @@ namespace ikanopu.Module {
                 }
             }
 
-            [Command("sync user"), Summary("RegisterUsersにあるユーザー名をDiscordと同期します")]
+            [Command("sync users"), Summary("RegisterUsersにあるユーザー名をDiscordと同期します")]
             public async Task SyncUser() {
                 foreach (var ru in ImageProcessingService.Config.RegisterUsers.Where(x => x.DiscordId.HasValue)) {
                     var user = await Context.Guild.GetUserAsync(ru.DiscordId.Value);
@@ -221,21 +218,21 @@ namespace ikanopu.Module {
             }
 
             [Command("userinfo"), Summary("ユーザー情報を返します")]
-            public async Task UserInfo([Summary("(optional) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
+            public async Task UserInfo([Summary("(optional: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null) {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
             }
 
             [Command("move"), Summary("ボイスチャンネル移動テスト")]
             public async Task Move(
-                [Summary("ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user,
+                [Summary("ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)")] IUser user,
                 [Summary("ボイスチャンネルID")] IVoiceChannel vc
                 ) {
                 var guildUser = await Context.Guild.GetUserAsync(user.Id);
                 await guildUser.ModifyAsync(x => x.Channel = Optional.Create(vc));
             }
 
-            [Command("vc users"), Summary("ボイスチャットに参加している、ユーザー情報を返します")]
+            [Command("vc users"), Summary("ボイスチャットに参加しているユーザー一覧を返します")]
             public async Task UserInfo() {
                 var channels = await Context.Guild.GetVoiceChannelsAsync();
                 var builder = new EmbedBuilder();
@@ -259,7 +256,7 @@ namespace ikanopu.Module {
             }
 
             [Command("clean"), Summary("ikanopuのつぶやきをなかったことにする")]
-            public async Task Clean([Summary("上限数")] int limit = 100) {
+            public async Task Clean([Summary("(optional: 100) 遡って削除する上限数")] int limit = 100) {
                 var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
                 var filtered = messages.Where(x => x.Author.Id == Context.Client.CurrentUser.Id);
                 foreach (var m in filtered) {
