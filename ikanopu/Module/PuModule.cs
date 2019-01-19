@@ -323,9 +323,9 @@ namespace ikanopu.Module {
             }
         }
 
-        [Command("random"), Summary("ステージとルールに悩んだらこれ")]
+        [Command("rule"), Summary("ステージとルールに悩んだらこれ")]
         [Alias("r")]
-        public async Task Random(
+        public async Task Rule(
             [Summary("(option: false) ナワバリバトルを含める場合はtrue")] bool nawabari = false
             ) {
             var rules = new List<string>() {
@@ -342,7 +342,7 @@ namespace ikanopu.Module {
             var c = new HttpClient();
             var json = await c.GetStringAsync("https://stat.ink/api/v2/stage");
             var stagesJson = JsonConvert.DeserializeObject(json) as JArray;
-            var stages = stagesJson?.Select(x => x["name"]["ja_JP"]?.Value).ToArray();
+            var stages = stagesJson?.Select(x => x["name"]["ja_JP"]).ToArray();
             if (stages == null) {
                 await ReplyAsync("正常に取得できませんでした");
                 return;
@@ -352,7 +352,40 @@ namespace ikanopu.Module {
 
             await ReplyAsync($"{stage} {rule}");
         }
+        [Command("buki"), Summary("ブキに悩んだらこれ")]
+        [Alias("b")]
+        public async Task Buki(
+            [Summary("(option: 8) おみくじの回数。8人分用意すればいいよね")] int count = 8
+            ) {
+            if (count < 1) return;
 
+            var r = new Random();
+
+            var c = new HttpClient();
+            var json = await c.GetStringAsync("https://stat.ink/api/v2/weapon");
+            var weaponsJson = JsonConvert.DeserializeObject(json) as JArray;
+            var weapons = weaponsJson?.ToList();
+            if (weapons == null) {
+                await ReplyAsync("正常に取得できませんでした");
+                return;
+            }
+            // 指定回数分だけ繰り返す
+            var builder = new EmbedBuilder();
+            for (int i = 0; i < count; ++i) {
+                if (weapons.Count < 1) break; // overrun対策
+
+                var index = r.Next(weapons.Count);
+                var w = weapons[index];
+                weapons.RemoveAt(index);
+
+                var main = w["name"]["ja_JP"];
+                var sub = w["sub"]["name"]["ja_JP"];
+                var special = w["special"]["name"]["ja_JP"];
+
+                builder.AddField($"[{i}] {main}", $"{sub}/{special}");
+            }
+            await ReplyAsync($"", false, builder.Build());
+        }
 
         [Group("debug")]
         public class DebugModule : ModuleBase {
