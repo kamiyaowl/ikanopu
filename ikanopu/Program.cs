@@ -84,7 +84,23 @@ namespace ikanopu {
                     services.GetRequiredService<ImageProcessingService>().CaptureAsync(cancelTokenSource.Token);
 #pragma warning restore CS4014
                     while (Cv2.WaitKey(config.CaptureDelayMs) != config.CaptureBreakKey) {
-                        captureRawWindow.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
+                        if (config.IsAlwaysRunDetect) {
+                            // 常に推論動かす場合は詳細を出してあげる
+                            var results = services.GetRequiredService<ImageProcessingService>().CacheResults;
+                            if ((results?.Length ?? 0) > 0) {
+                                var r = results.First();
+                                if (r.RecognizedUsers?.Any() ?? false) {
+                                    Mat mat;
+                                    lock (services.GetRequiredService<ImageProcessingService>().CaptureRawMat) {
+                                        mat = services.GetRequiredService<ImageProcessingService>().CaptureRawMat.Clone();
+                                    }
+                                    r.DrawPreview(mat);
+                                    captureRawWindow.ShowImage(mat);
+                                }
+                            }
+                        } else {
+                            captureRawWindow.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
+                        }
                     }
                     cancelTokenSource.Cancel();
                 }

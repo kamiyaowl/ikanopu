@@ -13,13 +13,23 @@ using System.Threading.Tasks;
 
 namespace ikanopu.Service {
     public class ImageProcessingService : IDisposable {
+        #region DI
         private readonly IServiceProvider serviceProvider;
         private readonly DiscordSocketClient discord;
-
         public GlobalConfig Config { get; set; }
-        public Mat CaptureRawMat { get; set; }
-
+        #endregion
+        /// <summary>
+        /// くり抜き領域はキャッシュしておく
+        /// </summary>
         private (CropOption.Team t, Rect r)[][] cropPositions;
+        /// <summary>
+        /// 他の場所から元画像が欲しい時あるじゃん
+        /// </summary>
+        public Mat CaptureRawMat { get; internal set; }
+        /// <summary>
+        /// 結果のキャッシュ用、Config.IsAlwaysRunDetect = trueのときしか使えない
+        /// </summary>
+        public RecognizeResult[] CacheResults { get; internal set; }
 
         public ImageProcessingService(IServiceProvider services) {
             this.serviceProvider = services;
@@ -47,7 +57,7 @@ namespace ikanopu.Service {
         /// <param name="cancelToken"></param>
         /// <returns></returns>
         public Task CaptureAsync(CancellationToken cancellationToken) {
-            return Task.Run(() => {
+            return Task.Run(async () => {
                 using (var capture = new VideoCapture(CaptureDevice.Any, Config.CameraIndex) {
                     FrameWidth = Config.CaptureWidth,
                     FrameHeight = Config.CaptureHeight,
@@ -59,8 +69,10 @@ namespace ikanopu.Service {
                             capture.Read(this.CaptureRawMat);
                             CaptureRawMat.PutText($"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}", new Point(0, 32), HersheyFonts.HersheyComplex, 1, Scalar.White, 1, LineTypes.AntiAlias, false);
                         }
-
-                        Task.Delay(Config.CaptureDelayMs);
+                        if (Config.IsAlwaysRunDetect) {
+                            this.CacheResults = await RecognizeAllAsync();
+                        }
+                        await Task.Delay(Config.CaptureDelayMs);
                     }
                     Console.WriteLine($"[{DateTime.Now}] ImageProcessingService#CaptureAsync() Canceled");
                 }
@@ -112,7 +124,10 @@ namespace ikanopu.Service {
         /// <param name="indexes">くり抜き領域として使用するインデックス</param>
         /// <param name="preFiltering">認識数0等を事前に弾く場合はtrue</param>
         /// <returns></returns>
-        public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes, bool preFiltering = true) {
+        public async Task<RecognizeResult[]> RecognizeAllAsync(IEnumerable<int> indexes = null, bool preFiltering = true) {
+            if (indexes == null) {
+                indexes = Enumerable.Range(0, this.Config.CropOptions.Length);
+            }
             var results = await Task.WhenAll(indexes.Select(x => RecognizeAsync(x)));
             return results.Where(x => (!preFiltering) || (x.RecognizedUsers?.Length ?? 0) > 0)
                           .OrderByDescending(x => x.Score)

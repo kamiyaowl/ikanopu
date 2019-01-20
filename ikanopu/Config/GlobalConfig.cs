@@ -43,6 +43,10 @@ namespace ikanopu.Config {
         /// デバッグ用に画像を保存するか
         /// </summary>
         public bool IsSaveDebugImage { get; set; } = true;
+        /// <summary>
+        /// (Debug用) 認識を走らせ続ける場合はtrue
+        /// </summary>
+        public bool IsAlwaysRunDetect { get; set; } = false;
 
         /// <summary>
         /// Alphaチーム
