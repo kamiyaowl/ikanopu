@@ -34,6 +34,10 @@ namespace ikanopu.Config {
         /// </summary>
         public double RecognizeSigmaRatio { get; set; } = 0.8;
         /// <summary>
+        /// 特徴点数がどの程度異なったときに弾くか設定できる
+        /// </summary>
+        public double KeyPointCountThreash { get; set; } = 1.7;
+        /// <summary>
         /// 特徴量の近い値が複数あったときに、
         /// true: 破棄せず一番良いものを採用
         /// false: 破棄
