@@ -94,7 +94,7 @@ namespace ikanopu {
                                     lock (services.GetRequiredService<ImageProcessingService>().CaptureRawMat) {
                                         mat = services.GetRequiredService<ImageProcessingService>().CaptureRawMat.Clone();
                                     }
-                                    r.DrawPreview(mat);
+                                    r.DrawPreview(mat, true);
                                     captureRawWindow.ShowImage(mat);
                                 }
                             }

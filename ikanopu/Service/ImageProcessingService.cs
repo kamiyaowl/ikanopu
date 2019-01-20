@@ -69,9 +69,13 @@ namespace ikanopu.Service {
                             capture.Read(this.CaptureRawMat);
                             CaptureRawMat.PutText($"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}", new Point(0, 32), HersheyFonts.HersheyComplex, 1, Scalar.White, 1, LineTypes.AntiAlias, false);
                         }
+                        
+                        #region Debug向けに常時認識しておくモード
                         if (Config.IsAlwaysRunDetect) {
                             this.CacheResults = await RecognizeAllAsync();
                         }
+                        #endregion
+
                         await Task.Delay(Config.CaptureDelayMs);
                     }
                     Console.WriteLine($"[{DateTime.Now}] ImageProcessingService#CaptureAsync() Canceled");

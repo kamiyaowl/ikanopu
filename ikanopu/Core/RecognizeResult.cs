@@ -45,9 +45,13 @@ namespace ikanopu.Core {
         /// </summary>
         /// <param name="originMat">originMatが直接編集されます</param>
         /// <returns></returns>
-        public void DrawPreview(Mat originMat) {
+        public void DrawPreview(Mat originMat, bool isDebug = false) {
             if (RecognizedUsers == null) { return; }
-            originMat.DrawCropPreview(CropOption, RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
+            if (isDebug) {
+                originMat.DrawCropPreview(CropOption, RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}\n{x.Independency}")));
+            } else {
+                originMat.DrawCropPreview(CropOption, RecognizedUsers.Select(x => (x.Index, $"{x.User.DisplayName}")));
+            }
         }
 
         #region IDisposable Support
