@@ -292,8 +292,11 @@ namespace ikanopu.Module {
         public class ConfigModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
 
-            [Command("show"), Summary("config.jsonの内容を表示します")]
-            public async Task ShowConfigRaw([Summary("子要素名、`--all`指定するとすべて表示")] string name) {
+            [Command("get"), Summary("config.jsonの内容を表示します")]
+            [Alias("show")]
+            public async Task Get(
+                [Summary("子要素名、`--all`指定するとすべて表示")] string name
+                ) {
                 string str = null;
                 if (name.Equals("--all")) {
                     str = JsonConvert.SerializeObject(ImageProcessingService.Config, Formatting.Indented);
@@ -312,14 +315,14 @@ namespace ikanopu.Module {
                 }
             }
 
-            [Command("sync users"), Summary("RegisterUsersにあるユーザー名をDiscordと同期します")]
+            [Command("sync"), Summary("RegisterUsersにあるユーザー名をDiscordと同期します")]
             public async Task SyncUser() {
                 foreach (var ru in ImageProcessingService.Config.RegisterUsers.Where(x => x.DiscordId.HasValue)) {
                     var user = await Context.Guild.GetUserAsync(ru.DiscordId.Value);
                     ru.DisplayName = user.Username;
                 }
                 ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
-                await this.ShowConfigRaw("RegisterUsers");
+                await this.Get("RegisterUsers");
             }
         }
 

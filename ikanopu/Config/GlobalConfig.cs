@@ -44,10 +44,6 @@ namespace ikanopu.Config {
         /// </summary>
         public bool IsPrioritizeDetect { get; set; } = true;
         /// <summary>
-        /// デバッグ用に画像を保存するか
-        /// </summary>
-        public bool IsSaveDebugImage { get; set; } = true;
-        /// <summary>
         /// (Debug用) 認識を走らせ続ける場合はtrue
         /// </summary>
         public bool IsAlwaysRunDetect { get; set; } = false;
@@ -84,6 +80,10 @@ namespace ikanopu.Config {
         /// テンプレートマッチ登録者一覧
         /// </summary>
         public List<RegisterUser> RegisterUsers { get; set; } = new List<RegisterUser>();
+        /// <summary>
+        /// Config書き換えなどができるユーザ一覧
+        /// </summary>
+        public List<ulong> AdminUsers { get; set; } = new List<ulong>();
         /// <summary>
         /// 最終更新日
         /// </summary>
