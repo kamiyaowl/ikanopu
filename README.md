@@ -63,7 +63,7 @@ Discordの任意テキストチャンネル上で以下のコマンド等が使�
 ### `!pu lobby`
 現在`Alpha/Bravo`チャンネルにいるユーザを`Lobby`チャンネルに移動させます。
 
-### `!pu detect [move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true]`
+### `!pu detect [move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true] [moveWatcher=true]`
 現在のキャプチャ画像から画像認識を行い、ユーザを`Alpha/Bravo`チャンネルに移動させます。**ikanopuを起動させているユーザが、ブキ選択画面から抜けていてユーザ一覧が見えている状態にあることが必須です。**
 
 `[move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true]`についてはオプションなので基本は省略し、`!pu detect`だけで実行可能です。
