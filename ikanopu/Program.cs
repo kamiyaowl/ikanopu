@@ -166,7 +166,7 @@ namespace ikanopu {
 
             int argPos = 0;
             // botからの自動返信などは受けない
-            if (message.Author.IsBot) return;
+            //if (message.Author.IsBot) return;
             if (!message.HasCharPrefix('!', ref argPos) && !message.HasMentionPrefix(discord.CurrentUser, ref argPos)) {
                 return;
             }

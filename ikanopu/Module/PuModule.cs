@@ -84,6 +84,7 @@ namespace ikanopu.Module {
         public async Task Capture(
             [Summary("(optional: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
             [Summary("(optional: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
+            [Summary("(optional: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue")] bool watcherMove = true,
             [Summary("(optional: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true,
             [Summary("(optional: true) 認識できなかった結果を破棄する場合はtrue")] bool preFilter = true
             ) {
@@ -143,13 +144,29 @@ namespace ikanopu.Module {
                         (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
                         (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
                         (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
-                    }
-                        .Where(x => x.Item2.HasValue);
+                    }.Where(x => x.Item2.HasValue);
+
                     foreach (var (team, vcId) in targetChannels) {
                         var users = targets.Where(x => x.Team == team);
                         foreach (var u in users) {
                             await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
                         }
+                    }
+                    // 観戦者ムーブ
+                    if (watcherMove) {
+                        var watchers = targets.Where(x => x.Team == Team.Watcher).ToArray();
+                        var r = new Random();
+                        var isAlpha = r.NextDouble() > 0.5;
+                        for (int i = 0; i < watchers.Length; ++i) {
+                            // 交互に飛ばす
+                            var u = watchers[i];
+                            var (team, vcId) = isAlpha ? targetChannels.FirstOrDefault(x => x.Item1 == Team.Alpha) : targetChannels.FirstOrDefault(x => x.Item1 == Team.Bravo);
+                            isAlpha = !isAlpha; // 反転
+                            if (vcId != null) {
+                                await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
+                            }
+                        }
+
                     }
                 }
                 // Disposeしとく
