@@ -1,8 +1,8 @@
 # ikanopu
 
-![ikanopu](https://user-images.githubusercontent.com/4300987/51441131-addb7100-1d11-11e9-8dad-fde8de0c3b6f.jpg)
+![ikanopu](https://user-images.githubusercontent.com/4300987/51915233-ef5cd200-241d-11e9-929b-de9bcad41a31.gif)
 
-ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボイスチャットの部屋割りを自動化するbotです
+ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボイスチャットの部屋割りを自動化するbotです。
 
 # Environments
 
@@ -17,7 +17,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 1. Discord 開発者サイトからbotを作成
 1. 作成時に取得できるTokenをメモしておきます(ikanopu 初回起動時に入力)
 1. botのOAuth認証URLを作成し、使用したいギルドに追加します
-1. ギルド内メンバーのModifyができる権限(役職)をbotに付与します
+1. botにギルド内メンバーのModifyができる権限(役職)を付与します(VoiceChannelの変更に使用します)
 
 # Usage
 
@@ -51,7 +51,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 ## Discord上での使い方
 
 Discordの任意テキストチャンネル上で以下のコマンド等が使用可能です。詳細は`!pu`コマンドで表示されるヘルプを参照してください。
-注意点として**ボイスチャット移動系のコマンドは、ステータスがオフライン以外のユーザに対してのみ有効です**。オンライン状態を隠したままだと適用されないため注意してください。
+注意点として**ボイスチャット移動系のコマンドは、ステータスがオフライン以外のユーザに対してのみ有効です**。**オンライン状態を隠したままだと適用されないため注意してください。**
 
 [実装 PuModule.cs](https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs)
 
@@ -66,7 +66,7 @@ Discordの任意テキストチャンネル上で以下のコマンド等が使�
 ### `!pu detect [move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true] [moveWatcher=true]`
 現在のキャプチャ画像から画像認識を行い、ユーザを`Alpha/Bravo`チャンネルに移動させます。**ikanopuを起動させているユーザが、ブキ選択画面から抜けていてユーザ一覧が見えている状態にあることが必須です。**
 
-`[move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true]`についてはオプションなので基本は省略し、`!pu detect`だけで実行可能です。
+`[move=true] [cropIndex=-1] [uploadImage=true] [preFilter=true] [moveWatcher=true]`についてはオプションなので基本は省略し、`!pu detect`だけで実行可能です。
 
 初めて起動しており誰も登録されていない場合は、認識エラーで結果が帰ってこないため以下2コマンドのいずれかを叩いた後に、後述の`!pu register [user] [index]`を使用して登録を行ってください。
 
@@ -80,7 +80,7 @@ Discordの任意テキストチャンネル上で以下のコマンド等が使�
 
 ### `!pu register [user] [index]`
 直近に画像認識を行った中から、名前の画像と未登録のユーザのDiscord IDを紐つけて登録します。
-indexに指定スべき数字を知るためには、`!pu register show images`を実行します。
+indexに指定するべき数字は、認識した画像に直接描画されている数字を指定します。または`!pu register show images`でも登録する画像を見ることができます。
 
 ### `!pu register show now true`
 現在登録済のユーザ一覧を画像つきで返します。
@@ -99,7 +99,7 @@ Gateway Blockingによって一括で画像を返すコマンドなどにリト�
 * グレースケール→2値化処理で名前以外の背景を削除
 * 名前の画像から、画像の特徴点(KeyPoint)を抽出
 * 登録されている画像の特徴点と、キャプチャした名前画像の特徴点比較
-* マッチングした特徴点の距離総和と特徴点の数からもっとも親しいものを抽出
+* マッチングした特徴点の距離総和と特徴点の数からもっとも類似する画像を抽出
 
 *Splatoon2の名前画像は微妙に傾いており、単純なテンプレートマッチやXORではうまくいかなそうでした。回転も考慮してマッチングを行うか、傾きを補正してしまうなどより良い手法があればぜひ...。*
 
@@ -108,7 +108,7 @@ Gateway Blockingによって一括で画像を返すコマンドなどにリト�
 [MIT License](https://github.com/kamiyaowl/ikanopu/blob/master/LICENSE)
 ___
 
-# 2019/01/20時点のコマンドリスト(参考まで)
+# Command List
 ```
 pu
 コマンド一覧を表示
@@ -117,13 +117,14 @@ pu lobby
 ボイスチャット参加者をロビーに集めます。
 アルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です
 
-pu detect [move] [cropIndex] [uploadImage] [preFilter]
+pu detect [move] [cropIndex] [uploadImage] [preFilter] [watcherMove]
 画像認識を行いボイスチャットを遷移させます。
 ステータスをオフラインにしていないユーザすべてが対象です。
 [move]: (optional: true) 推測結果からユーザを移動させる場合はtrue
 [cropIndex]: (optional: -1) 切り出す領域を設定します。-1の場合は結果の良い方を採用
 [uploadImage]: (optional: true) 認識に使用した画像を表示する場合はtrue
 [preFilter]: (optional: true) 認識できなかった結果を破棄する場合はtrue
+[watcherMove]: (optional: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue
 
 pu rule [nawabari]
 ステージとルールに悩んだらこれ
@@ -192,3 +193,7 @@ ikanopuのつぶやきをなかったことにする
 [delete]: (option: false) 確認用。本当に削除する場合はtrue
 [limit]: (optional: 100) 遡って削除する上限数
 ```
+
+# Other
+
+いっしょにイカやりましょう。
