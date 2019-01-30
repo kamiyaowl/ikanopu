@@ -8,6 +8,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 
 * Windows 10
 * Visual Studio 2017
+* .NET Framework 4.6.1
 * Capture Board(AVT-C878)
 
 # Install
@@ -45,7 +46,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 * Bravo - ブラボーチーム
 * Lobby - `!pu lobby`を発行した際に全員をこのチャンネルに移動します
 
-### RegistereUsers
+### RegisterUsers
 特徴量画像を登録済みのユーザです。後述の`!pu register [user] [index]`コマンドで登録することが可能です。(手動編集でも可能です。)
 
 ## Discord上での使い方
