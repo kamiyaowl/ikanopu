@@ -14,6 +14,14 @@ namespace ikanopu.Config {
         /// </summary>
         public int CameraIndex { get; set; } = 0;
         /// <summary>
+        /// USB接続のキャプチャデバイス以外を使用する場合はtrue
+        /// </summary>
+        public bool IsCustomCaptureSource { get; set; } = false;
+        /// <summary>
+        /// UDP、RTSPなどを受ける場合のソース
+        /// </summary>
+        public string CustomCaptureSource { get; set; } = "";
+        /// <summary>
         /// Captureループの待ち時間
         /// </summary>
         public int CaptureDelayMs { get; set; } = 100;

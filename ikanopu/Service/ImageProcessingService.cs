@@ -58,10 +58,17 @@ namespace ikanopu.Service {
         /// <returns></returns>
         public Task CaptureAsync(CancellationToken cancellationToken) {
             return Task.Run(async () => {
-                using (var capture = new VideoCapture(CaptureDevice.Any, Config.CameraIndex) {
-                    FrameWidth = Config.CaptureWidth,
-                    FrameHeight = Config.CaptureHeight,
-                }) {
+                using (var capture = new VideoCapture() { }) {
+                    if (Config.IsCustomCaptureSource && !string.IsNullOrWhiteSpace(Config.CustomCaptureSource)) {
+                        Console.WriteLine($"[{DateTime.Now}] CustomCaptureSource: {Config.CustomCaptureSource}");
+                        capture.Open(Config.CustomCaptureSource);
+                    } else {
+                        Console.WriteLine($"[{DateTime.Now}] CameraIndex: {Config.CameraIndex}");
+                        capture.Open(CaptureDevice.Any, Config.CameraIndex);
+                    }
+                    capture.FrameWidth = Config.CaptureWidth;
+                    capture.FrameHeight = Config.CaptureHeight;
+
                     // ゴミが入っているので最初に読んでおく
                     capture.Read(this.CaptureRawMat);
                     while (!cancellationToken.IsCancellationRequested) {
@@ -69,7 +76,7 @@ namespace ikanopu.Service {
                             capture.Read(this.CaptureRawMat);
                             CaptureRawMat.PutText($"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}", new Point(0, 32), HersheyFonts.HersheyComplex, 1, Scalar.White, 1, LineTypes.AntiAlias, false);
                         }
-                        
+
                         #region Debug向けに常時認識しておくモード
                         if (Config.IsAlwaysRunDetect) {
                             this.CacheResults = await RecognizeAllAsync();
