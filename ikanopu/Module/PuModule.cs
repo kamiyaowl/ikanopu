@@ -27,8 +27,6 @@ namespace ikanopu.Module {
         [Alias("help")]
         public async Task Help() {
             var sb = new StringBuilder();
-            sb.AppendLine("*ikanopu(beta)*");
-            sb.AppendLine();
             sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます。詳細は実装を参照。");
             sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs");
 
@@ -37,7 +35,7 @@ namespace ikanopu.Module {
                 builder.AddField(
                     c.Aliases.First() + " " + string.Join(" ", c.Parameters.Select(x => $"[{x}]")),
                     (c.Summary ?? "no description") + "\n" +
-                        string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}"))
+                        string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}")) + "\n\n"
                 );
             }
             await ReplyAsync(sb.ToString(), false, builder.Build());

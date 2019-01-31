@@ -71,14 +71,14 @@ namespace ikanopu {
                 //ログインして通信開始
                 await discord.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
                 await discord.StartAsync();
-                await discord.SetGameAsync("イカ", "https://github.com/kamiyaowl/ikanopu", Discord.ActivityType.Watching);
+                await discord.SetGameAsync("イカ", "https://github.com/kamiyaowl/ikanopu", Discord.ActivityType.Playing);
 
                 #endregion
 
                 #region 画像処理
                 await services.GetRequiredService<ImageProcessingService>().InitializeAsync(config);
                 // メインスレッドで画像を表示してあげるしかない
-                using (Window captureRawWindow = new Window("Capture Raw")) {
+                using (Window captureRawWindow = new Window("Capture Raw", WindowMode.KeepRatio)) {
                     var cancelTokenSource = new CancellationTokenSource();
 #pragma warning disable CS4014
                     services.GetRequiredService<ImageProcessingService>().CaptureAsync(cancelTokenSource.Token);
