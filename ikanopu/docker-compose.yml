@@ -1,8 +1,0 @@
-version: '3.4'
-
-services:
-  ikanopu-dotnet:
-    image: ${DOCKER_REGISTRY}ikanopudotnet
-    build:
-      context: .
-      dockerfile: ../ikanopu-dotnet/Dockerfile

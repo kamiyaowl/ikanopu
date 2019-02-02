@@ -106,14 +106,15 @@ namespace ikanopu {
                     } else {
                         captureRawWindow?.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
                     }
-                    // いろいろ消す
-                    cancelTokenSource.Cancel();
-                    captureRawWindow?.Close();
-                    captureRawWindow?.Dispose();
                 }
                 #endregion
 
                 #region Finalize
+                // いろいろ消す
+                cancelTokenSource.Cancel();
+                captureRawWindow?.Close();
+                captureRawWindow?.Dispose();
+
                 // 終了時にコンフィグを書き直してあげる（バージョンが変わっていたときなど、あるじゃん)
                 config.UpdatedAt = DateTime.Now;
                 secret.UpdatedAt = DateTime.Now;
