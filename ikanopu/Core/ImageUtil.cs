@@ -22,14 +22,15 @@ namespace ikanopu.Core {
         /// <param name="text"></param>
         /// <param name=""></param>
         public static void PutTextExtra(this Mat src, Font font, Brush brush, int x, int y, string text) {
-            using (var bmp = src.ToBitmap())
-            using (var g = Graphics.FromImage(bmp)) {
-                g.DrawString(text, font, brush, x, y);
+            // TODO: Standard非サポートなのでどうにかしような
+            //using (var bmp = src.ToBitmap())
+            //using (var g = Graphics.FromImage(bmp)) {
+            //    g.DrawString(text, font, brush, x, y);
 
-                using (var mat = bmp.ToMat()) {
-                    src[0, src.Rows, 0, src.Cols] = mat;
-                }
-            }
+            //    using (var mat = bmp.ToMat()) {
+            //        src[0, src.Rows, 0, src.Cols] = mat;
+            //    }
+            //}
         }
         /// <summary>
         /// 画像切り抜きのプレビューを表示します。デバッグ用
