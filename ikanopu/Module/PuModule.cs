@@ -80,11 +80,11 @@ namespace ikanopu.Module {
         [Command("detect"), Summary("画像認識を行いボイスチャットを遷移させます。\nステータスをオフラインにしていないユーザすべてが対象です。")]
         [Alias("d")]
         public async Task Capture(
-            [Summary("(optional: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
-            [Summary("(optional: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
-            [Summary("(optional: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true,
-            [Summary("(optional: true) 認識できなかった結果を破棄する場合はtrue")] bool preFilter = true,
-            [Summary("(optional: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue")] bool watcherMove = true
+            [Summary("(option: true) 推測結果からユーザを移動させる場合はtrue")] bool move = true,
+            [Summary("(option: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
+            [Summary("(option: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true,
+            [Summary("(option: true) 認識できなかった結果を破棄する場合はtrue")] bool preFilter = true,
+            [Summary("(option: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue")] bool watcherMove = true
             ) {
             var rawPath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
@@ -246,8 +246,8 @@ namespace ikanopu.Module {
                 [Command("now"), Summary("登録済一覧を表示します")]
                 [Alias("registered", "current")]
                 public async Task Registered(
-                    [Summary("(optional: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false,
-                    [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+                    [Summary("(option: false) 登録画像も一緒に表示する場合はtrue")] bool showImage = false,
+                    [Summary("(option: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
                     ) {
                     var tmpFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "tmp.jpg");
 
@@ -268,7 +268,7 @@ namespace ikanopu.Module {
 
                 [Command("images"), Summary("現在登録可能な画像一覧を返します。(`!pu detect`実行時にキャッシュされます")]
                 public async Task Images(
-                    [Summary("(optional: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
+                    [Summary("(option: false) bitmapのオリジナル画像が欲しい場合はtrue")] bool useBitmap = false
                 ) {
                     var files = Directory.GetFiles(ImageProcessingService.Config.TemporaryDirectory, "recognize-*");
                     var rawFilePath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
@@ -431,7 +431,7 @@ namespace ikanopu.Module {
 
             [Command("userinfo"), Summary("ユーザー情報を返します")]
             public async Task UserInfo(
-                [Summary("(optional: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null
+                [Summary("(option: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報")] IUser user = null
                 ) {
                 var userInfo = user ?? Context.Client.CurrentUser;
                 await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator} (ID: {userInfo.Id})");
@@ -506,7 +506,7 @@ namespace ikanopu.Module {
                 [Command("posts"), Summary("ikanopuのつぶやきをなかったことにする")]
                 public async Task Post(
                     [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false,
-                    [Summary("(optional: 100) 遡って削除する上限数")] int limit = 100
+                    [Summary("(option: 100) 遡って削除する上限数")] int limit = 100
                     ) {
                     var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
                     var filtered = messages.Where(x => x.Author.Id == Context.Client.CurrentUser.Id);

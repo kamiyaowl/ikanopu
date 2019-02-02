@@ -85,7 +85,6 @@ namespace ikanopu.Service {
 
                         await Task.Delay(Config.CaptureDelayMs);
                     }
-                    Console.WriteLine($"[{DateTime.Now}] ImageProcessingService#CaptureAsync() Canceled");
                 }
             }, cancellationToken);
         }

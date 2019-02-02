@@ -78,31 +78,38 @@ namespace ikanopu {
                 #region 画像処理
                 await services.GetRequiredService<ImageProcessingService>().InitializeAsync(config);
                 // メインスレッドで画像を表示してあげるしかない
-                using (Window captureRawWindow = new Window("Capture Raw", WindowMode.KeepRatio)) {
-                    var cancelTokenSource = new CancellationTokenSource();
+                Window captureRawWindow = null;
+                if (config.IsShowCaptureWindow) {
+                    captureRawWindow = new Window("Capture Raw", WindowMode.KeepRatio);
+                }
+                var cancelTokenSource = new CancellationTokenSource();
+
 #pragma warning disable CS4014
-                    services.GetRequiredService<ImageProcessingService>().CaptureAsync(cancelTokenSource.Token);
+                services.GetRequiredService<ImageProcessingService>().CaptureAsync(cancelTokenSource.Token);
 #pragma warning restore CS4014
-                    while (Cv2.WaitKey(config.CaptureDelayMs) != config.CaptureBreakKey) {
-                        if (config.IsAlwaysRunDetect) {
-                            // 常に推論動かす場合は詳細を出してあげる
-                            var results = services.GetRequiredService<ImageProcessingService>().CacheResults;
-                            if ((results?.Length ?? 0) > 0) {
-                                var r = results.First();
-                                if (r.RecognizedUsers?.Any() ?? false) {
-                                    Mat mat;
-                                    lock (services.GetRequiredService<ImageProcessingService>().CaptureRawMat) {
-                                        mat = services.GetRequiredService<ImageProcessingService>().CaptureRawMat.Clone();
-                                    }
-                                    r.DrawPreview(mat, true);
-                                    captureRawWindow.ShowImage(mat);
+
+                while (Cv2.WaitKey(config.CaptureDelayMs) != config.CaptureBreakKey) {
+                    if (config.IsAlwaysRunDetect) {
+                        // 常に推論動かす場合は詳細を出してあげる
+                        var results = services.GetRequiredService<ImageProcessingService>().CacheResults;
+                        if ((results?.Length ?? 0) > 0) {
+                            var r = results.First();
+                            if (r.RecognizedUsers?.Any() ?? false) {
+                                Mat mat;
+                                lock (services.GetRequiredService<ImageProcessingService>().CaptureRawMat) {
+                                    mat = services.GetRequiredService<ImageProcessingService>().CaptureRawMat.Clone();
                                 }
+                                r.DrawPreview(mat, true);
+                                captureRawWindow?.ShowImage(mat);
                             }
-                        } else {
-                            captureRawWindow.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
                         }
+                    } else {
+                        captureRawWindow?.ShowImage(services.GetRequiredService<ImageProcessingService>().CaptureRawMat);
                     }
+                    // いろいろ消す
                     cancelTokenSource.Cancel();
+                    captureRawWindow?.Close();
+                    captureRawWindow?.Dispose();
                 }
                 #endregion
 

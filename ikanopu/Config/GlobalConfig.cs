@@ -14,6 +14,10 @@ namespace ikanopu.Config {
         /// </summary>
         public int CameraIndex { get; set; } = 0;
         /// <summary>
+        /// キャプチャ画面を表示するか
+        /// </summary>
+        public bool IsShowCaptureWindow { get; set; } = true;
+        /// <summary>
         /// USB接続のキャプチャデバイス以外を使用する場合はtrue
         /// </summary>
         public bool IsCustomCaptureSource { get; set; } = false;
