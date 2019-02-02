@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ikanopu", "ikanopu.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ikanopu-dotnet", "..\ikanopu-dotnet\ikanopu-dotnet.csproj", "{16B67592-1F66-4A5A-BC47-FE6994FA8CFB}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{FE925322-4E16-4C92-9AB0-663B4256019F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{16B67592-1F66-4A5A-BC47-FE6994FA8CFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16B67592-1F66-4A5A-BC47-FE6994FA8CFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16B67592-1F66-4A5A-BC47-FE6994FA8CFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE925322-4E16-4C92-9AB0-663B4256019F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE925322-4E16-4C92-9AB0-663B4256019F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE925322-4E16-4C92-9AB0-663B4256019F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE925322-4E16-4C92-9AB0-663B4256019F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
