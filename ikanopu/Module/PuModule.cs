@@ -68,8 +68,9 @@ namespace ikanopu.Module {
                 var users = await c.Value.GetUsersAsync().FlattenAsync();
                 var filtered =
                     users.Where(x => x.Status != UserStatus.Offline)
+                         .Where(x => !x.IsBot)
                          .ToArray();
-                foreach (var u in users) {
+                foreach (var u in filtered) {
                     builder.AddField($"{u.Username}#{u.Discriminator}", $"{u.VoiceChannel.Name} -> {lobby.Name}");
                     await u.ModifyAsync(x => x.ChannelId = Optional.Create(lobby.Id));
                 }
