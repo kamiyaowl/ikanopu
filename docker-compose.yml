@@ -6,3 +6,5 @@ services:
     build:
       context: .
       dockerfile: ikanopu/Dockerfile
+    environment:
+      - PU_IsShowCaptureWindow=false

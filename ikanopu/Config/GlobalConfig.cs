@@ -63,15 +63,15 @@ namespace ikanopu.Config {
         /// <summary>
         /// Alphaチーム
         /// </summary>
-        public ulong? AlphaVoiceChannelId { get; set; }
+        public ulong AlphaVoiceChannelId { get; set; } = 0;
         /// <summary>
         /// Bravoチーム
         /// </summary>
-        public ulong? BravoVoiceChannelId { get; set; }
+        public ulong BravoVoiceChannelId { get; set; } = 0;
         /// <summary>
         /// ロビー
         /// </summary>
-        public ulong? LobbyVoiceChannelId { get; set; }
+        public ulong LobbyVoiceChannelId { get; set; } = 0;
 
         /// <summary>
         /// 切り出す名前の座標設定

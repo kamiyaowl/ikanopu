@@ -50,8 +50,8 @@ namespace ikanopu.Module {
                         (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
                         (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
                     }
-                .Where(x => x.Item2.HasValue)
-                .Select(x => (x.Item1, vcs.FirstOrDefault(vc => vc.Id == x.Item2.Value)))
+                .Where(x => x.Item2 != 0)
+                .Select(x => (x.Item1, vcs.FirstOrDefault(vc => vc.Id == x.Item2)))
                 .Where(x => x.Item2 != null)
                 .ToDictionary(x => x.Item1, x => x.Item2);
 
@@ -143,12 +143,12 @@ namespace ikanopu.Module {
                         (Team.Alpha, ImageProcessingService.Config.AlphaVoiceChannelId),
                         (Team.Bravo, ImageProcessingService.Config.BravoVoiceChannelId),
                         (Team.Watcher, ImageProcessingService.Config.LobbyVoiceChannelId),
-                    }.Where(x => x.Item2.HasValue);
+                    }.Where(x => x.Item2 != 0);
 
                     foreach (var (team, vcId) in targetChannels) {
                         var users = targets.Where(x => x.Team == team);
                         foreach (var u in users) {
-                            await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
+                            await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId));
                         }
                     }
                     // 観戦者ムーブ
@@ -161,8 +161,8 @@ namespace ikanopu.Module {
                             var u = watchers[i];
                             var (team, vcId) = isAlpha ? targetChannels.FirstOrDefault(x => x.Item1 == Team.Alpha) : targetChannels.FirstOrDefault(x => x.Item1 == Team.Bravo);
                             isAlpha = !isAlpha; // 反転
-                            if (vcId != null) {
-                                await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId.Value));
+                            if (vcId != 0) {
+                                await u.GuildUser.ModifyAsync(x => x.ChannelId = Optional.Create(vcId));
                             }
                         }
 
@@ -454,13 +454,13 @@ namespace ikanopu.Module {
                 foreach (var c in channels) {
                     var users = await c.GetUsersAsync().FlattenAsync();
                     var header = $"{c.Name}({c.Id})";
-                    if (ImageProcessingService.Config.AlphaVoiceChannelId.GetValueOrDefault() == c.Id) {
+                    if (ImageProcessingService.Config.AlphaVoiceChannelId == c.Id) {
                         header += " [アルファチーム会場]";
                     }
-                    if (ImageProcessingService.Config.BravoVoiceChannelId.GetValueOrDefault() == c.Id) {
+                    if (ImageProcessingService.Config.BravoVoiceChannelId == c.Id) {
                         header += " [ブラボーチーム会場]";
                     }
-                    if (ImageProcessingService.Config.LobbyVoiceChannelId.GetValueOrDefault() == c.Id) {
+                    if (ImageProcessingService.Config.LobbyVoiceChannelId == c.Id) {
                         header += " [ロビー]";
                     }
 

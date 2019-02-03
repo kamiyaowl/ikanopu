@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -37,6 +38,18 @@ namespace ikanopu {
             using (var config = GlobalConfig.PATH.FromJsonFile(() => new GlobalConfig())) {
                 var secret = SecretConfig.PATH.FromJsonFile(() => new SecretConfig());
 
+
+                #region 環境変数からのconfig書き換え(コンテナ実行時のみ有効)
+#if !DEBUG
+                if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?.Equals("true") ?? false) {
+#endif
+                ApplyEnvironments(config, secret);
+#if !DEBUG
+                }
+#endif
+                #endregion
+
+
                 #region 前処理
                 if (!Directory.Exists(config.RegisterImageDirectory)) {
                     Directory.CreateDirectory(config.RegisterImageDirectory);
@@ -44,7 +57,6 @@ namespace ikanopu {
                 if (!Directory.Exists(config.TemporaryDirectory)) {
                     Directory.CreateDirectory(config.TemporaryDirectory);
                 }
-
                 CheckDiscordTokenSecret(secret);
                 CheckRegisterUserImage(config);
 
@@ -69,9 +81,13 @@ namespace ikanopu {
                 await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
 
                 //ログインして通信開始
-                await discord.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
-                await discord.StartAsync();
-                await discord.SetGameAsync("イカ", "https://github.com/kamiyaowl/ikanopu", Discord.ActivityType.Playing);
+                if (!string.IsNullOrWhiteSpace(secret.DiscordToken)) {
+                    await discord.LoginAsync(Discord.TokenType.Bot, secret.DiscordToken);
+                    await discord.StartAsync();
+                    await discord.SetGameAsync("イカ", "https://github.com/kamiyaowl/ikanopu", Discord.ActivityType.Playing);
+                } else {
+                    Console.WriteLine($"[{DateTime.Now}] DiscordTokenが指定されていないため、利用することができません。");
+                }
 
                 #endregion
 
@@ -132,6 +148,64 @@ namespace ikanopu {
             }
         }
         /// <summary>
+        /// 環境変数をconfigに設定します
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="secret"></param>
+        private static void ApplyEnvironments(GlobalConfig config, SecretConfig secret) {
+            Console.WriteLine($"[{DateTime.Now}] 環境変数からconfig.json, secret.jsonの内容を更新します");
+            Console.WriteLine($"[{DateTime.Now}] ヒント：docker実行の場合、永続化するためには/app/config.jsonをマウントしてください");
+            var props = typeof(GlobalConfig).GetProperties();
+            var envs = Environment.GetEnvironmentVariables();
+            foreach (DictionaryEntry env in envs) {
+                var header = env.Key as string;
+                var value = env.Value as string;
+                // 値がない
+                if (string.IsNullOrWhiteSpace(header)) {
+                    continue;
+                }
+                // pu_をプレフィックスにしているか
+                var key = header.Replace("PU_", "").Replace("pu_", "");
+                if (header.Length == key.Length) {
+                    continue;
+                }
+                // Discord Secretを書き直す
+                if (key.Equals("DiscordToken")) {
+                    Console.WriteLine($"[{DateTime.Now}] [Config<-Env] DiscordToken = XXXXXXXXXX");
+                    secret.DiscordToken = value as string;
+                }
+                // GlobalConfigのメンバに当たるやつがいればそれを書き直す
+                foreach (var prop in props) {
+                    if (key.ToLower().Equals(prop.Name.ToLower())) {
+                        // 型変換が必要な場合がある。力技
+                        object dst = null;
+                        var t = prop.PropertyType;
+
+                        if (t == typeof(string)) {
+                            dst = value;
+                        }
+                        if (t == typeof(bool)) {
+                            dst = bool.Parse(value);
+                        }
+                        if (t == typeof(int)) {
+                            dst = int.Parse(value);
+                        }
+                        if (t == typeof(double)) {
+                            dst = double.Parse(value);
+                        }
+                        if (t == typeof(ulong)) {
+                            dst = ulong.Parse(value);
+                        }
+                        Console.WriteLine($"[{DateTime.Now}] [Config<-Env] {prop.Name} = {value}");
+                        prop.SetValue(config, dst);
+                    }
+                }
+            }
+            config.ToJsonFile(GlobalConfig.PATH);
+            Console.WriteLine($"[{DateTime.Now}] 適用終了");
+        }
+
+        /// <summary>
         /// 登録画像がすべて存在するか確認します
         /// </summary>
         /// <param name="config"></param>
@@ -150,6 +224,8 @@ namespace ikanopu {
                 Console.WriteLine("DiscordのBot用のトークンを入力してください(secret.jsonに保存されるだけなので心配しないで");
                 Console.Write(">");
                 secret.DiscordToken = Console.ReadLine();
+                Console.WriteLine();
+
                 secret.UpdatedAt = DateTime.Now;
                 secret.ToJsonFile(SecretConfig.PATH);
             }
