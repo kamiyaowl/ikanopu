@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using OpenCvSharp.Extensions;
+using SkiaSharp;
 
 namespace ikanopu.Core {
     /// <summary>
@@ -23,14 +24,14 @@ namespace ikanopu.Core {
         /// <param name=""></param>
         public static void PutTextExtra(this Mat src, Font font, Brush brush, int x, int y, string text) {
             // TODO: Standard非サポートなのでどうにかしような
-            //using (var bmp = src.ToBitmap())
-            //using (var g = Graphics.FromImage(bmp)) {
-            //    g.DrawString(text, font, brush, x, y);
+            using (var bmp = src.ToBitmap())
+            using (var g = Graphics.FromImage(bmp)) {
+                g.DrawString(text, font, brush, x, y);
 
-            //    using (var mat = bmp.ToMat()) {
-            //        src[0, src.Rows, 0, src.Cols] = mat;
-            //    }
-            //}
+                using (var mat = bmp.ToMat()) {
+                    src[0, src.Rows, 0, src.Cols] = mat;
+                }
+            }
         }
         /// <summary>
         /// 画像切り抜きのプレビューを表示します。デバッグ用
@@ -201,7 +202,7 @@ namespace ikanopu.Core {
             #endregion
 
             #region 一致するユーザを判定
-            
+
             var recognizedUsers =
                 matchResults.Select(r => {
                     var user = r.user;
@@ -241,7 +242,7 @@ namespace ikanopu.Core {
                     var multipleDetect = detects.Length > 1;
                     if (multipleDetect && !config.IsPrioritizeDetect) return null;
                     // こいつが正解、複数検出対策にKeyPointDiffの推移も見てやる
-                    var detect = 
+                    var detect =
                         detects.OrderBy(x => x.Value.KeyPointDiff).First();
                     // 完了
                     return new {
@@ -275,7 +276,7 @@ namespace ikanopu.Core {
             var filteredUsers =
                 recognizedUsers.GroupBy(x => x.Index)
                                .Select(y =>
-                                    y.OrderByDescending(x => 
+                                    y.OrderByDescending(x =>
                                         x.Independency + (x.IsMultipleDetect ? -100 * x.KeyPointDiff : 0)).First()
                                )
                                .ToList();
