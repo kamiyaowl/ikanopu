@@ -8,7 +8,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 
 * Windows 10
 * Visual Studio 2017
-* .NET Framework 4.6.1
+* .NET Core 2.0
 * Capture Board(AVT-C878)
 
 # Install

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using OpenCvSharp.Extensions;
-using SkiaSharp;
 
 namespace ikanopu.Core {
     /// <summary>
