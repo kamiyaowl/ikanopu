@@ -79,7 +79,6 @@ namespace ikanopu {
                 // 本プロジェクトにあるコマンドを全部ロード
                 commands = new CommandService(new CommandServiceConfig() {
                     DefaultRunMode = RunMode.Async,
-                    LogLevel = Discord.LogSeverity.Info,
                 });
                 await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
 
@@ -251,7 +250,7 @@ namespace ikanopu {
         /// <returns></returns>
         private static async Task Client_MessageReceived(SocketMessage socketMessage) {
             var message = socketMessage as SocketUserMessage;
-            Console.WriteLine($"[{DateTime.Now}] #{message.Channel.Name}{message.Author.Username}#{message.Author.Discriminator}: {message}");
+            Console.WriteLine($"[{DateTime.Now}] #{message.Channel.Name}- {message.Author.Username}#{message.Author.Discriminator}: {message}");
 
             int argPos = 0;
             // botからの自動返信などは受けない

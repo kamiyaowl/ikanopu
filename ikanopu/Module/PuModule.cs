@@ -308,8 +308,34 @@ namespace ikanopu.Module {
         public class ConfigModule : ModuleBase {
             public ImageProcessingService ImageProcessingService { get; set; }
 
-            [Command("get"), Summary("config.jsonの内容を表示します")]
-            [Alias("show")]
+            [Group("get")]
+            public class GetModule : ModuleBase {
+                public ImageProcessingService ImageProcessingService { get; set; }
+                [Command("vc"), Summary("VoiceChannel情報を返します")]
+                public async Task GetVoiceChannel(
+                    [Summary("VoiceChannel ID")] ulong id
+                    ) {
+                    var vc = await Context.Guild.GetVoiceChannelAsync(id);
+                    if (vc != null) {
+                        await ReplyAsync($"{vc.Guild}/{vc.Name} ({vc.Id})");
+                    } else {
+                        await ReplyAsync($"{id}は存在しませんでした。");
+                    }
+                }
+
+                [Command("alpha"), Alias("a"), Summary("AlphaVoiceChannelIdを返します")]
+                public async Task Alpha() => await GetVoiceChannel(ImageProcessingService.Config.AlphaVoiceChannelId);
+                [Command("Bravo"), Alias("b"), Summary("BravoVoiceChannelIdを返します")]
+                public async Task Bravo() => await GetVoiceChannel(ImageProcessingService.Config.BravoVoiceChannelId);
+                [Command("Lobby"), Alias("l"), Summary("LobbyVoiceChannelIdを返します")]
+                public async Task Lobby() => await GetVoiceChannel(ImageProcessingService.Config.LobbyVoiceChannelId);
+            }
+            [Group("set")]
+            public class setModule : ModuleBase {
+                public ImageProcessingService ImageProcessingService { get; set; }
+            }
+
+            [Command("raw"), Summary("config.jsonの内容を表示します")]
             public async Task Get(
                 [Summary("子要素名、`--all`指定するとすべて表示")] string name
                 ) {
