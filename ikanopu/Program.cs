@@ -77,7 +77,10 @@ namespace ikanopu {
                     .BuildServiceProvider();
 
                 // 本プロジェクトにあるコマンドを全部ロード
-                commands = new CommandService();
+                commands = new CommandService(new CommandServiceConfig() {
+                    DefaultRunMode = RunMode.Async,
+                    LogLevel = Discord.LogSeverity.Info,
+                });
                 await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
 
                 //ログインして通信開始
