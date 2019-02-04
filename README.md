@@ -13,6 +13,34 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 
 # Install
 
+## アプリケーションのビルド
+
+Visual Studio 2017以降、もしくは[.NET Core](https://dotnet.microsoft.com/download)を準備します。
+
+### VSの場合
+
+ikanopu.slnを開いたら後はよしなに
+
+### dotnet cliでビルドする場合
+
+#### クローンしてプロジェクトディレクトリに移動
+```
+$ git clone https://github.com/kamiyaowl/ikanopu.git && cd ikanopu/ikanopu
+```
+
+#### Releaseビルドする
+```
+$ dotnet publish -c Release
+```
+
+#### 実行
+```
+$ dotnet bin/Release/netcoreapp2.1/publish/ikanopu.dll
+
+```
+
+## botのアカウント設定
+
 *詳細はDiscord公式にあるため割愛します*
 
 1. Discord 開発者サイトからbotを作成
@@ -103,6 +131,11 @@ Gateway Blockingによって一括で画像を返すコマンドなどにリト�
 * マッチングした特徴点の距離総和と特徴点の数からもっとも類似する画像を抽出
 
 *Splatoon2の名前画像は微妙に傾いており、単純なテンプレートマッチやXORではうまくいかなそうでした。回転も考慮してマッチングを行うか、傾きを補正してしまうなどより良い手法があればぜひ...。*
+
+# Dependency
+
+[Discord.Net](https://github.com/discord-net/Discord.Net)
+[opencvsharp](https://github.com/shimat/opencvsharp)
 
 # License
 
