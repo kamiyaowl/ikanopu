@@ -10,6 +10,10 @@ namespace ikanopu.Config {
     public class GlobalConfig : IDisposable {
         public static readonly string PATH = "config.json";
         /// <summary>
+        /// エラーメッセージを返すかどうか
+        /// </summary>
+        public bool IsReplyError { get; set; } = true;
+        /// <summary>
         /// キャプチャデバイスのインデックス
         /// </summary>
         public int CameraIndex { get; set; } = 0;

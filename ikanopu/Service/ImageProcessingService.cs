@@ -71,6 +71,7 @@ namespace ikanopu.Service {
 
                     // ゴミが入っているので最初に読んでおく
                     capture.Read(this.CaptureRawMat);
+                    Console.WriteLine($"[{DateTime.Now}] 画像取得開始");
                     while (!cancellationToken.IsCancellationRequested) {
                         lock (this.CaptureRawMat) {
                             capture.Read(this.CaptureRawMat);

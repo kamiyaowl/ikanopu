@@ -40,13 +40,13 @@ namespace ikanopu {
 
 
                 #region 環境変数からのconfig書き換え(コンテナ実行時のみ有効)
-//#if !DEBUG
+                //#if !DEBUG
                 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?.Equals("true") ?? false) {
-//#endif
-                ApplyEnvironments(config, secret);
-//#if !DEBUG
+                    //#endif
+                    ApplyEnvironments(config, secret);
+                    //#if !DEBUG
                 }
-//#endif
+                //#endif
                 #endregion
 
 
@@ -262,6 +262,11 @@ namespace ikanopu {
             // ダメ
             if (!result.IsSuccess) {
                 Console.WriteLine($"[{DateTime.Now}] {result.ErrorReason}");
+                // エラーリプ
+                var config = services.GetRequiredService<ImageProcessingService>().Config;
+                if (config.IsReplyError) {
+                    await context.Channel.SendMessageAsync($"<@{context.User.Id}> [Error] {result.ErrorReason}");
+                }
                 return;
             }
 

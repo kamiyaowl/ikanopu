@@ -91,7 +91,7 @@ namespace ikanopu.Module {
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
             // cropIndexの領域確認
             if (cropIndex > -1 && cropIndex >= ImageProcessingService.Config.CropOptions.Length) {
-                await ReplyAsync($"cropIndexが設定不可能な値です。0-{ImageProcessingService.Config.CropOptions.Length}までの値を指定してください。");
+                await ReplyAsync($"cropIndexが設定不可能な値です。0-{ImageProcessingService.Config.CropOptions.Length - 1}までの値を指定してください。");
                 return;
             }
             // とりあえず認識してあげる
