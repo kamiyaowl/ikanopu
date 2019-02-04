@@ -40,13 +40,13 @@ namespace ikanopu {
 
 
                 #region 環境変数からのconfig書き換え(コンテナ実行時のみ有効)
-#if !DEBUG
+//#if !DEBUG
                 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?.Equals("true") ?? false) {
-#endif
+//#endif
                 ApplyEnvironments(config, secret);
-#if !DEBUG
+//#if !DEBUG
                 }
-#endif
+//#endif
                 #endregion
 
 
@@ -97,6 +97,8 @@ namespace ikanopu {
                 Window captureRawWindow = null;
                 if (config.IsShowCaptureWindow) {
                     captureRawWindow = new Window("Capture Raw", WindowMode.KeepRatio);
+                } else {
+                    Console.WriteLine($"[{DateTime.Now}] IsShowCaptureWindow=falseのため、プレビューウインドウは表示されません");
                 }
                 var cancelTokenSource = new CancellationTokenSource();
 
