@@ -27,18 +27,23 @@ namespace ikanopu.Module {
         [Alias("help")]
         public async Task Help() {
             var sb = new StringBuilder();
-            sb.AppendLine("コマンドは先頭に`!`をつけた後に以下リストにあるものが使用できます。詳細は実装を参照。");
-            sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs");
-
-            var builder = new EmbedBuilder();
             foreach (var c in CommandService.Commands) {
-                builder.AddField(
-                    c.Aliases.First() + " " + string.Join(" ", c.Parameters.Select(x => $"[{x}]")),
-                    (c.Summary ?? "no description") + "\n" +
-                        string.Join("\n", c.Parameters.Select(x => $"[{x.Name}]: {x.Summary}")) + "\n\n"
-                );
+                // 2000文字対策
+                if (sb.Length > 1500) {
+                    await ReplyAsync(sb.ToString());
+                    sb = new StringBuilder();
+                }
+                sb.AppendLine("***" + c.Aliases.First() + " " + string.Join(" ", c.Parameters.Select(x => $"[{x}]")) + "***");
+                sb.AppendLine(c?.Summary ?? "no description");
+                if ((c?.Parameters?.Count ?? 0) > 0) {
+                    sb.AppendLine(
+                       string.Join("\n", c.Parameters.Select(x => $"`{x.Name}`: {x.Summary}"))
+                    );
+                }
+                sb.AppendLine();
             }
-            await ReplyAsync(sb.ToString(), false, builder.Build());
+            sb.AppendLine("https://github.com/kamiyaowl/ikanopu/blob/master/ikanopu/Module/PuModule.cs");
+            await ReplyAsync(sb.ToString());
         }
 
         [Command("lobby"), Summary("ボイスチャット参加者をロビーに集めます。\nアルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です")]
@@ -325,14 +330,64 @@ namespace ikanopu.Module {
 
                 [Command("alpha"), Alias("a"), Summary("AlphaVoiceChannelIdを返します")]
                 public async Task Alpha() => await GetVoiceChannel(ImageProcessingService.Config.AlphaVoiceChannelId);
-                [Command("Bravo"), Alias("b"), Summary("BravoVoiceChannelIdを返します")]
+                [Command("bravo"), Alias("b"), Summary("BravoVoiceChannelIdを返します")]
                 public async Task Bravo() => await GetVoiceChannel(ImageProcessingService.Config.BravoVoiceChannelId);
-                [Command("Lobby"), Alias("l"), Summary("LobbyVoiceChannelIdを返します")]
+                [Command("lobby"), Alias("l"), Summary("LobbyVoiceChannelIdを返します")]
                 public async Task Lobby() => await GetVoiceChannel(ImageProcessingService.Config.LobbyVoiceChannelId);
             }
             [Group("set")]
-            public class setModule : ModuleBase {
+            public class SetModule : ModuleBase {
                 public ImageProcessingService ImageProcessingService { get; set; }
+                [Command("vc"), Summary("VoiceChannel情報を返します")]
+                public async Task SetVoiceChannel(
+                    [Summary("更新先。{alpha, bravo, lobby}のいずれか")] string target,
+                    [Summary("VoiceChannel ID")] ulong id
+                    ) {
+                    if (target.Length == 0) {
+                        await ReplyAsync("target指定が不正です");
+                        return;
+                    }
+                    var vc = await Context.Guild.GetVoiceChannelAsync(id);
+                    if (vc == null) {
+                        await ReplyAsync($"{id}は存在しません");
+                        return;
+                    }
+                    if (id == ImageProcessingService.Config.AlphaVoiceChannelId) {
+                        await ReplyAsync("すでにAlphaに設定済です");
+                        return;
+                    }
+                    if (id == ImageProcessingService.Config.BravoVoiceChannelId) {
+                        await ReplyAsync("すでにBravoに設定済です");
+                        return;
+                    }
+                    if (id == ImageProcessingService.Config.LobbyVoiceChannelId) {
+                        await ReplyAsync("すでにLobbyに設定済です");
+                        return;
+                    }
+                    switch (target.ToLower()[0]) {
+                        case 'a':
+                            ImageProcessingService.Config.AlphaVoiceChannelId = id;
+                            break;
+                        case 'b':
+                            ImageProcessingService.Config.BravoVoiceChannelId = id;
+                            break;
+                        case 'l':
+                            ImageProcessingService.Config.LobbyVoiceChannelId = id;
+                            break;
+                        default:
+                            await ReplyAsync($"target指定が不正です");
+                            return;
+                    }
+                    // おわり
+                    await ReplyAsync($"{target} := {vc.Guild}/{vc.Name}({vc.Id})に設定しました");
+                }
+                [Command("alpha"), Alias("a"), Summary("AlphaVoiceChannelIdを設定します")]
+                public async Task Alpha() => await SetVoiceChannel("a", ImageProcessingService.Config.AlphaVoiceChannelId);
+                [Command("bravo"), Alias("b"), Summary("BravoVoiceChannelIdを設定します")]
+                public async Task Bravo() => await SetVoiceChannel("b", ImageProcessingService.Config.BravoVoiceChannelId);
+                [Command("lobby"), Alias("l"), Summary("LobbyVoiceChannelIdを設定します")]
+                public async Task Lobby() => await SetVoiceChannel("l", ImageProcessingService.Config.LobbyVoiceChannelId);
+
             }
 
             [Command("raw"), Summary("config.jsonの内容を表示します")]

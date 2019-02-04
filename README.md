@@ -8,7 +8,7 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 
 * Windows 10
 * Visual Studio 2017
-* .NET Core 2.0
+* .NET Core 2.1
 * Capture Board(AVT-C878)
 
 # Install
@@ -111,88 +111,109 @@ ___
 
 # Command List
 ```
-pu
+pu 
 コマンド一覧を表示
 
-pu lobby
+pu lobby 
 ボイスチャット参加者をロビーに集めます。
 アルファ、ブラボー、ロビーのVCに参加していて、ステータスがオフラインではないユーザが対象です
 
 pu detect [move] [cropIndex] [uploadImage] [preFilter] [watcherMove]
 画像認識を行いボイスチャットを遷移させます。
 ステータスをオフラインにしていないユーザすべてが対象です。
-[move]: (optional: true) 推測結果からユーザを移動させる場合はtrue
-[cropIndex]: (optional: -1) 切り出す領域を設定します。-1の場合は結果の良い方を採用
-[uploadImage]: (optional: true) 認識に使用した画像を表示する場合はtrue
-[preFilter]: (optional: true) 認識できなかった結果を破棄する場合はtrue
-[watcherMove]: (optional: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue
+move: (option: true) 推測結果からユーザを移動させる場合はtrue
+cropIndex: (option: -1) 切り出す領域を設定します。-1の場合は結果の良い方を採用
+uploadImage: (option: true) 認識に使用した画像を表示する場合はtrue
+preFilter: (option: true) 認識できなかった結果を破棄する場合はtrue
+watcherMove: (option: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue
 
 pu rule [nawabari]
 ステージとルールに悩んだらこれ
-[nawabari]: (option: false) ナワバリバトルを含める場合はtrue
+nawabari: (option: false) ナワバリバトルを含める場合はtrue
 
 pu buki [count]
 ブキに悩んだらこれ
-[count]: (option: 8) おみくじの回数。8人分用意すればいいよね
+count: (option: 8) おみくじの回数。8人分用意すればいいよね
 
 pu register [user] [index]
 画像とDiscord Userの関連付けを追加します
-[user]: 追加するユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)
-[index]: 削除するインデックス。必ず!pu register showで確認してください。
+user: 追加するユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)
+index: 削除するインデックス。必ず!pu register showで確認してください。
 
 pu register remove [index] [delete]
 画像とDiscord Userの関連付けを削除します
-[index]: 削除するインデックス。必ず!pu register showで確認してください。
-[delete]: (option: false) 確認用。本当に削除する場合はtrue
+index: 削除するインデックス。必ず!pu register showで確認してください。
+delete: (option: false) 確認用。本当に削除する場合はtrue
 
 pu register show now [showImage] [useBitmap]
 登録済一覧を表示します
-[showImage]: (optional: false) 登録画像も一緒に表示する場合はtrue
-[useBitmap]: (optional: false) bitmapのオリジナル画像が欲しい場合はtrue
+showImage: (option: false) 登録画像も一緒に表示する場合はtrue
+useBitmap: (option: false) bitmapのオリジナル画像が欲しい場合はtrue
 
 pu register show images [useBitmap]
 現在登録可能な画像一覧を返します。(!pu detect実行時にキャッシュされます
-[useBitmap]: (optional: false) bitmapのオリジナル画像が欲しい場合はtrue
+useBitmap: (option: false) bitmapのオリジナル画像が欲しい場合はtrue
 
-pu config get [name]
+pu config raw [name]
 config.jsonの内容を表示します
-[name]: 子要素名、--all指定するとすべて表示
+name: 子要素名、--all指定するとすべて表示
 
-pu config set [name] [value]
-config.jsonの値を書き換えます。AdminUsersに追加されていることが条件です
-[name]: 子要素名、--all指定するとすべて表示
-[value]: 設定したい値
-
-pu config sync
+pu config sync 
 RegisterUsersにあるユーザー名をDiscordと同期します
+pu config get vc [id]
+VoiceChannel情報を返します
+id: VoiceChannel ID
+
+pu config get alpha 
+AlphaVoiceChannelIdを返します
+
+pu config get bravo 
+BravoVoiceChannelIdを返します
+
+pu config get lobby 
+LobbyVoiceChannelIdを返します
+
+pu config set vc [target] [id]
+VoiceChannel情報を返します
+target: 更新先。{alpha, bravo, lobby}のいずれか
+id: VoiceChannel ID
+
+pu config set alpha 
+AlphaVoiceChannelIdを設定します
+
+pu config set bravo 
+BravoVoiceChannelIdを設定します
+
+pu config set lobby 
+LobbyVoiceChannelIdを設定します
 
 pu debug echo [text]
 俺がオウムだ
-[text]: 適当なテキスト
+text: 適当なテキスト
 
-pu debug capture
+pu debug capture 
 現在のキャプチャデバイスの画像を取得します
 
 pu debug userinfo [user]
 ユーザー情報を返します
-[user]: (optional: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報
+user: (option: bot_id) ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)。省略した場合は自身の情報
 
 pu debug move [user] [vc]
 ボイスチャンネル移動テスト
-[user]: ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)
-[vc]: ボイスチャンネルID
+user: ユーザID及び名前など(@hogehoge, hogehoge#1234, raw_id)
+vc: ボイスチャンネルID
 
-pu debug vc users
+pu debug vc users 
 ボイスチャットに参加しているユーザー一覧を返します
 
 pu debug clean images [delete]
 登録されていない画像キャッシュを削除します
-[delete]: (option: false) 確認用。本当に削除する場合はtrue
+delete: (option: false) 確認用。本当に削除する場合はtrue
 
 pu debug clean posts [delete] [limit]
 ikanopuのつぶやきをなかったことにする
-[delete]: (option: false) 確認用。本当に削除する場合はtrue
-[limit]: (optional: 100) 遡って削除する上限数
+delete: (option: false) 確認用。本当に削除する場合はtrue
+limit: (option: 100) 遡って削除する上限数
 ```
 
 # Other
