@@ -90,7 +90,7 @@ namespace ikanopu.Module {
             [Summary("(option: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1,
             [Summary("(option: true) 認識に使用した画像を表示する場合はtrue")] bool uploadImage = true,
             [Summary("(option: true) 認識できなかった結果を破棄する場合はtrue")] bool preFilter = true,
-            [Summary("(option: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue")] bool watcherMove = false
+            [Summary("(option: false) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue")] bool watcherMove = false
             ) {
             var rawPath = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "raw.jpg");
             var path = Path.Combine(ImageProcessingService.Config.TemporaryDirectory, "recognize.jpg");
