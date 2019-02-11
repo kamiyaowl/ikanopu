@@ -266,7 +266,7 @@ namespace ikanopu {
                 Console.WriteLine($"[{DateTime.Now}] {result.ErrorReason}");
                 // エラーリプ
                 var config = services.GetRequiredService<ImageProcessingService>().Config;
-                if (config.IsReplyError) {
+                if (config.IsReplyError && !result.ErrorReason.Equals("Unknown command.")) {
                     await context.Channel.SendMessageAsync($"<@{context.User.Id}> [Error] {result.ErrorReason}");
                 }
                 return;
