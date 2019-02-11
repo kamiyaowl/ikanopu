@@ -227,12 +227,16 @@ namespace ikanopu.Module {
             [Command("remove"), Summary("画像とDiscord Userの関連付けを削除します")]
             [Alias("delete", "rm", "del")]
             public async Task Remove(
-                    [Summary("削除するインデックス。必ず`!pu register show`で確認してください。")] int index,
+                    [Summary("削除するインデックス。必ず`!pu register show`で確認してください。負数の場合、最後の登録からのインデックスで指定できます")] int index,
                     [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false
                 ) {
-                if (index < 0 || index >= ImageProcessingService.Config.RegisterUsers.Count) {
+                if (Math.Abs(index) >= ImageProcessingService.Config.RegisterUsers.Count) {
                     await ReplyAsync($"インデックスの値が不正です。[0-{ImageProcessingService.Config.RegisterUsers.Count - 1}]の範囲で指定してください。");
                     return;
+                }
+                // 負数の場合は最後からのインデックスに差し替え
+                if (index < 0) {
+                    index += ImageProcessingService.Config.RegisterUsers.Count;
                 }
                 var target = ImageProcessingService.Config.RegisterUsers[index];
                 if (!delete) {
