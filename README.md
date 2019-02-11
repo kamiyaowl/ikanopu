@@ -4,11 +4,15 @@
 
 ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボイスチャットの部屋割りを自動化するbotです。
 
+**Alpha/Bravoの通話をロビーでMixするikanokaiwaはこちら https://github.com/taniho0707/ikanokaiwa**
+
 # Environments
 
 * Windows 10
 * Visual Studio 2017
 * .NET Core 2.1
+* [Discord.Net](https://github.com/discord-net/Discord.Net)
+* [OpenCVSharp](https://github.com/shimat/opencvsharp)
 * Capture Board(AVT-C878)
 
 # Install
@@ -35,8 +39,8 @@ $ dotnet publish -c Release
 
 #### 実行
 ```
-$ dotnet bin/Release/netcoreapp2.1/publish/ikanopu.dll
-
+$ cd bin/Release/netcoreapp2.1/publish/
+$ dotnet ikanopu.dll
 ```
 
 ## botのアカウント設定
@@ -116,14 +120,17 @@ indexに指定するべき数字は、認識した画像に直接描画されて
 
 # Known Issue
 
-## Discordのレスポンスが遅れて帰ってくる
+## Ubuntu環境およびDocker環境でOpenCVSharpExternがP/Invokeエラーを発生させる
 
-Gateway Blockingによって一括で画像を返すコマンドなどにリトライがかかり、分割して結果が帰る場合があります。
+https://github.com/kamiyaowl/ikanopu/issues/24
 
 ## 画像認識精度
 
-~~画像処理プログラミングに対する理解がしょぼいため~~画像認識を誤る場合があります。
+**うまく認識できなかった画像も、再登録を行うことでかなり精度を改善できることを確認しています。**
+認識ミスは異なる特徴量を持った画像と認識しているので、discord idと紐付けることで精度改善が見込めます。
+
 具体的には以下の処理で実装していますが、短い名前が複数あった場合などに認識を誤る事象を確認しています。
+
 * 元画像から名前の領域を切り取り
 * グレースケール→2値化処理で名前以外の背景を削除
 * 名前の画像から、画像の特徴点(KeyPoint)を抽出
@@ -131,11 +138,6 @@ Gateway Blockingによって一括で画像を返すコマンドなどにリト�
 * マッチングした特徴点の距離総和と特徴点の数からもっとも類似する画像を抽出
 
 *Splatoon2の名前画像は微妙に傾いており、単純なテンプレートマッチやXORではうまくいかなそうでした。回転も考慮してマッチングを行うか、傾きを補正してしまうなどより良い手法があればぜひ...。*
-
-# Dependency
-
-[Discord.Net](https://github.com/discord-net/Discord.Net)
-[opencvsharp](https://github.com/shimat/opencvsharp)
 
 # License
 
@@ -158,7 +160,7 @@ move: (option: true) 推測結果からユーザを移動させる場合はtrue
 cropIndex: (option: -1) 切り出す領域を設定します。-1の場合は結果の良い方を採用
 uploadImage: (option: true) 認識に使用した画像を表示する場合はtrue
 preFilter: (option: true) 認識できなかった結果を破棄する場合はtrue
-watcherMove: (option: true) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue
+watcherMove: (option: false) 観戦者をAlpha/Bravoチャンネルに移動させる場合はtrue
 
 pu rule [nawabari]
 ステージとルールに悩んだらこれ
@@ -175,7 +177,7 @@ index: 削除するインデックス。必ず!pu register showで確認して�
 
 pu register remove [index] [delete]
 画像とDiscord Userの関連付けを削除します
-index: 削除するインデックス。必ず!pu register showで確認してください。
+index: 削除するインデックス。必ず!pu register showで確認してください。負数の場合、最後の登録からのインデックスで指定できます
 delete: (option: false) 確認用。本当に削除する場合はtrue
 
 pu register show now [showImage] [useBitmap]
