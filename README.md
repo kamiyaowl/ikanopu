@@ -43,6 +43,16 @@ $ cd bin/Release/netcoreapp2.1/publish/
 $ dotnet ikanopu.dll
 ```
 
+### ※手っ取り早く実行ファイル作成
+
+```
+$ dotnet publish -c Release -r win-x64
+$ dotnet publish -c Release -r osx-x64
+$ dotnet publish -c Release -r linux-x64
+```
+
+winの場合、`/ikanopu/bin/Release/netcoreapp2.1/win-x64/publish`にファイル一式が生成されます。
+
 ## botのアカウント設定
 
 *詳細はDiscord公式にあるため割愛します*
