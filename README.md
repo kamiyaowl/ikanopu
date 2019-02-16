@@ -17,6 +17,11 @@ ikanopuはSplatoon2のプライベートマッチの画面から、Discordのボ
 
 # Install
 
+## ビルド済み(Windows 10)
+
+以下にアップロードしているものを利用してください。起動するのは`ikanopu.exe`です。
+https://github.com/kamiyaowl/ikanopu/releases
+
 ## アプリケーションのビルド
 
 Visual Studio 2017以降、もしくは[.NET Core](https://dotnet.microsoft.com/download)を準備します。
