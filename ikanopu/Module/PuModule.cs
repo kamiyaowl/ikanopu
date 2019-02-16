@@ -114,7 +114,7 @@ namespace ikanopu.Module {
             }
             mat.SaveImage(rawPath);
             // 認識結果を書き込む
-            result.DrawPreview(mat);
+            result.DrawPreview(mat, isDebug: true); // Scoreも書いておく
             mat.SaveImage(path);
             mat.Dispose();
             mat = null;
@@ -128,8 +128,12 @@ namespace ikanopu.Module {
             var builder = new EmbedBuilder();
             // 認識失敗だけどpreFilter切っている場合などはここで終わり
             if (!result.IsInvalid && (result.RecognizedUsers?.Length ?? 0) > 0) {
-                foreach (var r in result.RecognizedUsers.OrderBy(x => x.Index)) {
-                    builder.AddField($"[{r.Index}] {r.Team}: {r.User.DisplayName}", $"Discord ID:{r.User.DiscordId}\nScore: {r.Independency}");
+                // 結果表示
+                foreach (var (team, data) in result.RecognizedUsers
+                                        .GroupBy(x => x.Team)
+                                        .Select(x => (x.Key, x.OrderBy(y => y.Index)))
+                                        .OrderBy(x => x.Key)) {
+                    builder.AddField($"{team}", $"{string.Join("\n", data.Select(x => $"{x.User.DisplayName}\tID:{x.User.DiscordId}"))}");
                 }
                 // ボイスチャットを移動させる
                 if (move) {
