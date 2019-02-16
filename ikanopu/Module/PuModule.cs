@@ -249,6 +249,29 @@ namespace ikanopu.Module {
                 await ReplyAsync($"次のユーザを削除しました。\n```\n{JsonConvert.SerializeObject(target, Formatting.Indented)}\n```");
             }
 
+            [Command("user remove"), Summary("指定したのDiscord IDで登録された画像をすべて削除します")]
+            [Alias("user delete", "user rm", "user del")]
+            public async Task UserRemove(
+                [Summary("削除するユーザー")] IUser user,
+                [Summary("(option: false) 確認用。本当に削除する場合はtrue")] bool delete = false
+                ) {
+                var targets =
+                    ImageProcessingService.Config
+                                          .RegisterUsers
+                                          .Where(x => x.DiscordId == user.Id)
+                                          .ToArray();
+                if (!delete) {
+                    await ReplyAsync($"まだ消してません。内容確認して問題なければコマンド末尾にtrueをつけることで削除できます。\n```\n{JsonConvert.SerializeObject(targets, Formatting.Indented)}\n```");
+                    return;
+                }
+                foreach (var t in targets) {
+                    ImageProcessingService.Config.RegisterUsers.Remove(t);
+                }
+                ImageProcessingService.Config.ToJsonFile(GlobalConfig.PATH);
+
+                await ReplyAsync($"次の登録を削除しました。\n```\n{JsonConvert.SerializeObject(targets, Formatting.Indented)}\n```");
+            }
+
             [Group("show")]
             [Alias("s")]
             public class ShowModule : ModuleBase {
