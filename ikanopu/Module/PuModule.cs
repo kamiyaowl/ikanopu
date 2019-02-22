@@ -82,6 +82,17 @@ namespace ikanopu.Module {
             }
             await ReplyAsync("以下の通り移動しました", false, builder.Build());
         }
+        [Command("initial"), Summary("!pu detectの初回実行時のエイリアスです")]
+        [Alias("i")]
+        public Task InitialCapture(
+                [Summary("(option: -1) 切り出す領域を設定します。`-1`の場合は結果の良い方を採用")] int cropIndex = -1
+            ) => Capture(
+                    move: false,
+                    cropIndex: cropIndex,
+                    uploadImage: false,
+                    preFilter: false,
+                    watcherMove: false
+                );
 
         [Command("detect"), Summary("画像認識を行いボイスチャットを遷移させます。\nステータスをオフラインにしていないユーザすべてが対象です。")]
         [Alias("d")]
