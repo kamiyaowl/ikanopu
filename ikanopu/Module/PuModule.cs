@@ -89,7 +89,7 @@ namespace ikanopu.Module {
             ) => Capture(
                     move: false,
                     cropIndex: cropIndex,
-                    uploadImage: false,
+                    uploadImage: true,
                     preFilter: false,
                     watcherMove: false
                 );
